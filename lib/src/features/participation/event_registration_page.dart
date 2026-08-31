@@ -17,6 +17,7 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
 
   late String? _selectedEvent;
   String? _selectedAgeGroup;
+  bool _isSubmitting = false;
 
   static const _ageGroups = [
     'Below 6 years',
@@ -47,14 +48,35 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
         : null;
   }
 
-  void _submitRegistration() {
+  Future<void> _submitRegistration() async {
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    _showRegistrationConfirmation();
+    setState(() => _isSubmitting = true);
+    try {
+      final api = EventApiService();
+      await api.submitRegistration(
+        eventTitle: _selectedEvent!,
+        participantName: _nameController.text.trim(),
+        flatNumber: _flatController.text.trim(),
+        ageGroup: _selectedAgeGroup!,
+        mobile: _mobileController.text.trim(),
+      );
+      if (!mounted) return;
+      await _showRegistrationConfirmation();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Submission failed: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   Future<void> _showRegistrationConfirmation() async {
@@ -189,7 +211,11 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
               ),
             ),
             const SizedBox(height: 14),
-            PrimaryButton(label: 'REGISTER', onPressed: _submitRegistration),
+            PrimaryButton(
+              label: 'REGISTER',
+              onPressed: _submitRegistration,
+              isLoading: _isSubmitting,
+            ),
           ],
         ),
       ),

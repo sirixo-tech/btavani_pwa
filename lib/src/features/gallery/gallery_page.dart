@@ -10,10 +10,33 @@ class GalleryPage extends StatefulWidget {
 class _GalleryPageState extends State<GalleryPage> {
   int _tab = 0;
   int _selectedPhoto = 0;
+  List<GalleryPhoto>? _gallery;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
+    _loadGallery();
+  }
+
+  Future<void> _loadGallery() async {
+    try {
+      setState(() {
+        _error = null;
+        _gallery = null;
+      });
+      final bootstrap = await EventApiService().fetchBootstrap();
+      setState(() {
+        _gallery = bootstrap.gallery;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load gallery.';
+          _gallery = galleryPhotos; // fallback
+        });
+      }
+    }
   }
 
   void _handleTabChanged(int value) {
@@ -35,8 +58,10 @@ class _GalleryPageState extends State<GalleryPage> {
     showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) =>
-          GalleryPreviewDialog(photo: galleryPhotos[index]),
+      builder: (dialogContext) {
+        final currentGallery = _gallery ?? galleryPhotos;
+        return GalleryPreviewDialog(photo: currentGallery[index]);
+      },
     );
   }
 
@@ -70,12 +95,24 @@ class _GalleryPageState extends State<GalleryPage> {
                 ),
               ),
               SizedBox(height: metrics.sectionGap),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               if (_tab == 0)
-                GalleryPhotosView(
-                  selectedPhoto: _selectedPhoto,
-                  metrics: metrics,
-                  onTileTap: (index) => _handleTileTap(index, context),
-                )
+                _gallery == null && _error == null
+                    ? const Center(child: CircularProgressIndicator())
+                    : GalleryPhotosView(
+                        gallery: _gallery ?? galleryPhotos,
+                        selectedPhoto: _selectedPhoto,
+                        metrics: metrics,
+                        onTileTap: (index) => _handleTileTap(index, context),
+                      )
               else
                 GalleryControlWidth(
                   width: metrics.emptyStateWidth,
@@ -172,19 +209,21 @@ class GalleryControlWidth extends StatelessWidget {
 
 class GalleryPhotosView extends StatelessWidget {
   const GalleryPhotosView({
+    required this.gallery,
     required this.selectedPhoto,
     required this.metrics,
     required this.onTileTap,
     super.key,
   });
 
+  final List<GalleryPhoto> gallery;
   final int selectedPhoto;
   final GalleryLayoutMetrics metrics;
   final ValueChanged<int> onTileTap;
 
   @override
   Widget build(BuildContext context) {
-    if (galleryPhotos.isEmpty) {
+    if (gallery.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(32.0),
@@ -193,13 +232,14 @@ class GalleryPhotosView extends StatelessWidget {
       );
     }
 
-    final selectedIndex = selectedPhoto.clamp(0, galleryPhotos.length - 1);
+    final selectedIndex = selectedPhoto.clamp(0, gallery.length - 1);
     final feature = GalleryFeaturePhoto(
-      photo: galleryPhotos[selectedIndex],
+      photo: gallery[selectedIndex],
       aspectRatio: metrics.featureAspectRatio,
       largeTitle: metrics.isWide,
     );
     final grid = GalleryPhotoGrid(
+      gallery: gallery,
       selectedPhoto: selectedIndex,
       metrics: metrics,
       onTileTap: onTileTap,
@@ -211,7 +251,7 @@ class GalleryPhotosView extends StatelessWidget {
         children: [
           feature,
           SizedBox(height: metrics.sectionGap),
-          const GallerySectionHeader(),
+          GallerySectionHeader(count: gallery.length),
           const SizedBox(height: 10),
           grid,
         ],
@@ -228,7 +268,7 @@ class GalleryPhotosView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const GallerySectionHeader(),
+              GallerySectionHeader(count: gallery.length),
               const SizedBox(height: 10),
               grid,
             ],
@@ -240,7 +280,9 @@ class GalleryPhotosView extends StatelessWidget {
 }
 
 class GallerySectionHeader extends StatelessWidget {
-  const GallerySectionHeader({super.key});
+  const GallerySectionHeader({required this.count, super.key});
+
+  final int count;
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +294,7 @@ class GallerySectionHeader extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          '${galleryPhotos.length} photos',
+          '$count photos',
           style: const TextStyle(color: _muted, fontWeight: FontWeight.w800),
         ),
       ],
@@ -262,12 +304,14 @@ class GallerySectionHeader extends StatelessWidget {
 
 class GalleryPhotoGrid extends StatelessWidget {
   const GalleryPhotoGrid({
+    required this.gallery,
     required this.selectedPhoto,
     required this.metrics,
     required this.onTileTap,
     super.key,
   });
 
+  final List<GalleryPhoto> gallery;
   final int selectedPhoto;
   final GalleryLayoutMetrics metrics;
   final ValueChanged<int> onTileTap;
@@ -283,10 +327,10 @@ class GalleryPhotoGrid extends StatelessWidget {
         mainAxisSpacing: metrics.gridSpacing,
         childAspectRatio: metrics.gridAspectRatio,
       ),
-      itemCount: galleryPhotos.length,
+      itemCount: gallery.length,
       itemBuilder: (context, index) => RepaintBoundary(
         child: GalleryTile(
-          photo: galleryPhotos[index],
+          photo: gallery[index],
           selected: selectedPhoto == index,
           onTap: () => onTileTap(index),
         ),
@@ -316,16 +360,30 @@ class GalleryFeaturePhoto extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              photo.asset,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: Colors.grey.shade300,
-                child: const Center(
-                  child: Icon(Icons.broken_image, color: Colors.grey),
+            if (photo.imageUrl != null)
+              Image.network(
+                photo.imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Center(
+                    child: Icon(Icons.broken_image, color: Colors.grey),
+                  ),
                 ),
-              ),
-            ),
+              )
+            else if (photo.asset != null)
+              Image.asset(
+                photo.asset!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade300,
+                  child: const Center(
+                    child: Icon(Icons.broken_image, color: Colors.grey),
+                  ),
+                ),
+              )
+            else
+              Container(color: Colors.grey.shade300),
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -412,20 +470,38 @@ class GalleryTile extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  photo.asset,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child: Icon(
-                        Icons.image_not_supported,
-                        size: 24,
-                        color: Colors.grey,
+                if (photo.imageUrl != null)
+                  Image.network(
+                    photo.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 24,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  )
+                else if (photo.asset != null)
+                  Image.asset(
+                    photo.asset!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 24,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Container(color: Colors.grey.shade200),
                 Positioned(
                   left: 0,
                   right: 0,
@@ -479,20 +555,37 @@ class GalleryPreviewDialog extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: 1,
-              child: Image.asset(
-                photo.asset,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey.shade300,
-                  child: const Center(
-                    child: Icon(
-                      Icons.broken_image,
-                      size: 48,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              ),
+              child: photo.imageUrl != null
+                  ? Image.network(
+                      photo.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey.shade300,
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    )
+                  : photo.asset != null
+                      ? Image.asset(
+                          photo.asset!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.grey.shade300,
+                            child: const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Container(color: Colors.grey.shade300),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),

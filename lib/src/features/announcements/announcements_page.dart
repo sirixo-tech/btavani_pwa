@@ -9,23 +9,52 @@ class AnnouncementsPage extends StatefulWidget {
 
 class _AnnouncementsPageState extends State<AnnouncementsPage> {
   int filter = 0;
+  List<AnnouncementItem>? _announcements;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnnouncements();
+  }
+
+  Future<void> _loadAnnouncements() async {
+    try {
+      setState(() {
+        _error = null;
+        _announcements = null;
+      });
+      final bootstrap = await EventApiService().fetchBootstrap();
+      setState(() {
+        _announcements = bootstrap.announcements;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load announcements.';
+          _announcements = announcements; // fallback
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final currentAnnouncements = _announcements ?? announcements;
     final visibleAnnouncements = switch (filter) {
       1 =>
-        announcements
+        currentAnnouncements
             .where((item) => item.label.toLowerCase() == 'notice')
             .toList(),
       2 =>
-        announcements
+        currentAnnouncements
             .where((item) => item.label.toLowerCase() == 'event')
             .toList(),
       3 =>
-        announcements
+        currentAnnouncements
             .where((item) => item.label.toLowerCase() == 'important')
             .toList(),
-      _ => announcements,
+      _ => currentAnnouncements,
     };
 
     return DetailScaffold(
@@ -47,17 +76,28 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
             selectedIndex: filter,
             onChanged: (value) => setState(() => filter = value),
           ),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                _error!,
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
           const SizedBox(height: 14),
           Expanded(
-            child: visibleAnnouncements.isEmpty
-                ? const AnnouncementsEmptyState()
-                : ListView.separated(
-                    itemCount: visibleAnnouncements.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) =>
-                        AnnouncementCard(item: visibleAnnouncements[index]),
-                  ),
+            child: _announcements == null && _error == null
+                ? const Center(child: CircularProgressIndicator())
+                : visibleAnnouncements.isEmpty
+                    ? const AnnouncementsEmptyState()
+                    : ListView.separated(
+                        itemCount: visibleAnnouncements.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) =>
+                            AnnouncementCard(item: visibleAnnouncements[index]),
+                      ),
           ),
           const SizedBox(height: 10),
           TextButton(

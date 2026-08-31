@@ -53,6 +53,7 @@ class _ContributePageState extends State<ContributePage> {
   int _selectedAmountIndex = 0;
   String _selectedBlock = _blocks.first;
   bool _paymentMarkedComplete = false;
+  bool _isSubmitting = false;
 
   int? get _selectedAmount {
     final preset = amounts[_selectedAmountIndex].amount;
@@ -92,14 +93,33 @@ class _ContributePageState extends State<ContributePage> {
     super.dispose();
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     FocusScope.of(context).unfocus();
 
     if (!_validateStep(_currentStep)) return;
 
     if (_currentStep == 5) {
-      setState(() => _paymentMarkedComplete = true);
-      _showSnack('Payment marked complete. Thank you for contributing.');
+      setState(() => _isSubmitting = true);
+      try {
+        final api = EventApiService();
+        await api.submitPayment(
+          amount: _selectedAmount ?? amounts.first.amount!,
+          blockId: _selectedBlock.toLowerCase().replaceAll(' ', ''),
+          residentName: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
+          flatNumber: _flatController.text.trim(),
+          gotram: _gotramController.text.trim(),
+        );
+        if (!mounted) return;
+        setState(() => _paymentMarkedComplete = true);
+        _showSnack('Payment marked complete. Thank you for contributing.');
+      } catch (e) {
+        if (!mounted) return;
+        _showSnack('Failed to record payment: $e');
+      } finally {
+        if (mounted) setState(() => _isSubmitting = false);
+      }
       return;
     }
 
@@ -312,31 +332,17 @@ class _ContributePageState extends State<ContributePage> {
             const SizedBox(height: 18),
             SizedBox(
               height: 54,
-              child: ElevatedButton(
+              child: PrimaryButton(
+                label: switch (_currentStep) {
+                  4 => 'PROCEED TO PAYMENT',
+                  5 =>
+                    _paymentMarkedComplete
+                        ? 'PAYMENT COMPLETED'
+                        : 'I HAVE COMPLETED THE PAYMENT',
+                  _ => 'CONTINUE',
+                },
+                isLoading: _isSubmitting,
                 onPressed: _continue,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _maroon,
-                  foregroundColor: Colors.white,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                ),
-                child: Text(
-                  switch (_currentStep) {
-                    4 => 'PROCEED TO PAYMENT',
-                    5 =>
-                      _paymentMarkedComplete
-                          ? 'PAYMENT COMPLETED'
-                          : 'I HAVE COMPLETED THE PAYMENT',
-                    _ => 'CONTINUE',
-                  },
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
               ),
             ),
             const SizedBox(height: 16),

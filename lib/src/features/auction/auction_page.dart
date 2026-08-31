@@ -10,6 +10,7 @@ class AuctionPage extends StatefulWidget {
 class _AuctionPageState extends State<AuctionPage> {
   int _highestBid = 11501;
   String _highestBidder = 'I-1204';
+  bool _isSubmitting = false;
 
   Future<void> _placeBid() async {
     final result = await showDialog<BidDetails>(
@@ -21,11 +22,27 @@ class _AuctionPageState extends State<AuctionPage> {
       return;
     }
 
-    setState(() {
-      _highestBid = result.amount;
-      _highestBidder = result.flatNumber;
-    });
-    _snack(context, 'Bid submitted successfully');
+    setState(() => _isSubmitting = true);
+    try {
+      final api = EventApiService();
+      await api.submitBid(
+        amount: result.amount,
+        bidderName: '', // Bidder name is not in the form, just flat number
+        flatNumber: result.flatNumber,
+        mobile: '',
+      );
+      if (!mounted) return;
+      setState(() {
+        _highestBid = result.amount;
+        _highestBidder = result.flatNumber;
+      });
+      _snack(context, 'Bid submitted successfully');
+    } catch (e) {
+      if (!mounted) return;
+      _snack(context, 'Failed to submit bid: $e');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -93,7 +110,11 @@ class _AuctionPageState extends State<AuctionPage> {
                 const SizedBox(height: 6),
                 const TimerRow(),
                 const SizedBox(height: 24),
-                PrimaryButton(label: 'PLACE YOUR BID', onPressed: _placeBid),
+                PrimaryButton(
+                  label: 'PLACE YOUR BID',
+                  isLoading: _isSubmitting,
+                  onPressed: _placeBid,
+                ),
               ],
             ),
           ),

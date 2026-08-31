@@ -61,6 +61,29 @@ class ScheduleItem {
   final String subtitle;
   final IconData icon;
   final Color color;
+
+  factory ScheduleItem.fromJson(Map<String, dynamic> json) {
+    Color parsedColor = const Color(0xFF6C1D45); // _maroon fallback
+    if (json['color'] != null) {
+      final colorStr = json['color'].toString();
+      if (colorStr.startsWith('#')) {
+        final hex = colorStr.replaceAll('#', '');
+        if (hex.length == 6) {
+          parsedColor = Color(int.parse('FF$hex', radix: 16));
+        } else if (hex.length == 8) {
+          parsedColor = Color(int.parse(hex, radix: 16));
+        }
+      }
+    }
+
+    return ScheduleItem(
+      time: json['label'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      subtitle: json['subtitle'] as String? ?? '',
+      icon: Icons.access_time, // fallback
+      color: parsedColor,
+    );
+  }
 }
 
 class AnnouncementItem {
@@ -79,16 +102,64 @@ class AnnouncementItem {
   final String date;
   final IconData icon;
   final Color color;
+
+  factory AnnouncementItem.fromJson(Map<String, dynamic> json) {
+    Color parsedColor = const Color(0xFF6C1D45);
+    if (json['color'] != null) {
+      final colorStr = json['color'].toString();
+      if (colorStr.startsWith('#')) {
+        final hex = colorStr.replaceAll('#', '');
+        if (hex.length == 6) {
+          parsedColor = Color(int.parse('FF$hex', radix: 16));
+        } else if (hex.length == 8) {
+          parsedColor = Color(int.parse(hex, radix: 16));
+        }
+      }
+    }
+
+    return AnnouncementItem(
+      label: json['label'] as String? ?? 'Notice',
+      title: json['title'] as String? ?? '',
+      body: json['body'] as String? ?? '',
+      date: json['subtitle'] as String? ?? '',
+      icon: Icons.notifications, // fallback
+      color: parsedColor,
+    );
+  }
+}
+
+class BootstrapData {
+  const BootstrapData({
+    required this.events,
+    required this.schedule,
+    required this.announcements,
+    required this.gallery,
+  });
+
+  final List<EventItem> events;
+  final List<ScheduleItem> schedule;
+  final List<AnnouncementItem> announcements;
+  final List<GalleryPhoto> gallery;
 }
 
 class GalleryPhoto {
   const GalleryPhoto({
-    required this.asset,
+    this.asset,
+    this.imageUrl,
     required this.title,
     required this.subtitle,
   });
 
-  final String asset;
+  final String? asset;
+  final String? imageUrl;
   final String title;
   final String subtitle;
+
+  factory GalleryPhoto.fromJson(Map<String, dynamic> json) {
+    return GalleryPhoto(
+      imageUrl: json['imageUrl'] as String?,
+      title: json['title'] as String? ?? '',
+      subtitle: json['subtitle'] as String? ?? '',
+    );
+  }
 }

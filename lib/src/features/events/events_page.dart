@@ -26,9 +26,9 @@ class _EventsPageState extends State<EventsPage> {
         _error = null;
         _events = null;
       });
-      final events = await EventApiService().fetchEvents();
+      final bootstrap = await EventApiService().fetchBootstrap();
       setState(() {
-        _events = events;
+        _events = bootstrap.events;
       });
     } catch (e) {
       setState(() {

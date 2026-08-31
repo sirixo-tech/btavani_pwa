@@ -1,15 +1,60 @@
 part of '../../../main.dart';
 
-class SchedulePage extends StatelessWidget {
+class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
 
   @override
+  State<SchedulePage> createState() => _SchedulePageState();
+}
+
+class _SchedulePageState extends State<SchedulePage> {
+  List<ScheduleItem>? _schedule;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSchedule();
+  }
+
+  Future<void> _loadSchedule() async {
+    try {
+      setState(() {
+        _error = null;
+        _schedule = null;
+      });
+      final bootstrap = await EventApiService().fetchBootstrap();
+      setState(() {
+        _schedule = bootstrap.schedule;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load schedule. Using fallback data.';
+          _schedule = scheduleItems; // fallback
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final currentSchedule = _schedule ?? scheduleItems;
+
     return DetailScaffold(
       title: "Today's Schedule",
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                _error!,
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
           const Center(
             child: Text(
               '5 September 2026',
@@ -17,27 +62,33 @@ class SchedulePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          for (final item in scheduleItems) ...[
-            ScheduleTile(item: item),
-            const SizedBox(height: 12),
-          ],
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [_goldLight.withValues(alpha: 0.62), _surfaceWarm],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          if (_schedule == null && _error == null)
+            const Center(child: CircularProgressIndicator())
+          else if (currentSchedule.isEmpty)
+            const Center(child: Text('No schedule available today.'))
+          else
+            for (final item in currentSchedule) ...[
+              ScheduleTile(item: item),
+              const SizedBox(height: 12),
+            ],
+          if (_schedule != null || _error != null)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [_goldLight.withValues(alpha: 0.62), _surfaceWarm],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(color: _gold.withValues(alpha: 0.20)),
+                borderRadius: BorderRadius.circular(18),
               ),
-              border: Border.all(color: _gold.withValues(alpha: 0.20)),
-              borderRadius: BorderRadius.circular(18),
+              child: const Text(
+                'Timings may change.\nPlease check announcements for updates.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
-            child: const Text(
-              'Timings may change.\nPlease check announcements for updates.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.w800),
-            ),
-          ),
         ],
       ),
     );

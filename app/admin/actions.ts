@@ -105,7 +105,9 @@ export async function saveBlockAction(prevState: unknown, formData: FormData) {
 export async function saveCmsAction(formData: FormData) {
   await requireAdmin();
 
-  const uploadedImage = await fileToDataUrl(formData.get("imageFile") as File | null);
+  const file = formData.get("imageFile") as File | null;
+  console.log("saveCmsAction: Received imageFile:", file?.name, file?.size, file?.type);
+  const uploadedImage = await fileToDataUrl(file);
   const parsed = z
     .object({
       id: z.string().optional(),

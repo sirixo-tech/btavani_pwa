@@ -12,24 +12,8 @@ class ContributePage extends StatefulWidget {
 class _ContributePageState extends State<ContributePage> {
   static const int minimumContributionAmount = 2000;
   static const int maximumContributionAmount = 99000;
-  static const List<String> _blocks = [
-    'Block A',
-    'Block B',
-    'Block C',
-    'Block D',
-    'Block E',
-    'Block F',
-    'Block G',
-  ];
-  static const Map<String, String> _upiIds = {
-    'Block A': 'avani.blocka@axl',
-    'Block B': 'avani.blockb@axl',
-    'Block C': 'avani.blockc@axl',
-    'Block D': 'avani.blockd@axl',
-    'Block E': 'avani.blocke@axl',
-    'Block F': 'avani.blockf@axl',
-    'Block G': 'avani.blockg@axl',
-  };
+  List<Block> _blocks = [];
+  bool _isLoadingBlocks = true;
 
   final _detailsFormKey = GlobalKey<FormState>();
   final _addressFormKey = GlobalKey<FormState>();
@@ -51,9 +35,34 @@ class _ContributePageState extends State<ContributePage> {
 
   int _currentStep = 0;
   int _selectedAmountIndex = 0;
-  String _selectedBlock = _blocks.first;
+  Block? _selectedBlock;
   bool _paymentMarkedComplete = false;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBlocks();
+  }
+
+  Future<void> _loadBlocks() async {
+    try {
+      final bootstrap = await EventApiService().fetchBootstrap();
+      if (!mounted) return;
+      setState(() {
+        _blocks = bootstrap.blocks;
+        if (_blocks.isNotEmpty) {
+           _selectedBlock = _blocks.first;
+        }
+        _isLoadingBlocks = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingBlocks = false;
+      });
+    }
+  }
 
   int? get _selectedAmount {
     final preset = amounts[_selectedAmountIndex].amount;
@@ -64,7 +73,8 @@ class _ContributePageState extends State<ContributePage> {
     );
   }
 
-  String get _selectedUpiId => _upiIds[_selectedBlock] ?? _upiIds.values.first;
+  String get _selectedUpiId => _selectedBlock?.upiId ?? '';
+  String get _selectedQrImageUrl => _selectedBlock?.qrImageUrl ?? '';
 
   Uri get _upiUri {
     final amount = _selectedAmount ?? amounts.first.amount!;
@@ -77,7 +87,7 @@ class _ContributePageState extends State<ContributePage> {
         'pn': 'BT AVANI Ganesh Utsav Committee',
         'am': amount.toString(),
         'cu': 'INR',
-        'tn': 'Avani Ganesh Utsav 2026 - $_selectedBlock',
+        'tn': 'Avani Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''}',
       },
     );
   }
@@ -104,7 +114,7 @@ class _ContributePageState extends State<ContributePage> {
         final api = EventApiService();
         await api.submitPayment(
           amount: _selectedAmount ?? amounts.first.amount!,
-          blockId: _selectedBlock.toLowerCase().replaceAll(' ', ''),
+          blockId: _selectedBlock?.id ?? '',
           residentName: _nameController.text.trim(),
           email: _emailController.text.trim(),
           phone: _phoneController.text.trim(),
@@ -213,6 +223,12 @@ class _ContributePageState extends State<ContributePage> {
   Widget build(BuildContext context) {
     final amount = _selectedAmount ?? amounts.first.amount!;
 
+    if (_isLoadingBlocks) {
+      return const Center(
+        child: CircularProgressIndicator(color: _maroon),
+      );
+    }
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(18, 12, 18, 104),
@@ -293,20 +309,20 @@ class _ContributePageState extends State<ContributePage> {
                   ),
                   2 => _AddressStep(
                     formKey: _addressFormKey,
-                    blocks: _blocks,
-                    selectedBlock: _selectedBlock,
+                    blocks: _blocks.map((b) => b.name).toList(),
+                    selectedBlock: _selectedBlock?.name ?? '',
                     flatController: _flatController,
                     gotramController: _gotramController,
                     onBlockChanged: (block) {
-                      setState(() => _selectedBlock = block);
+                      setState(() => _selectedBlock = _blocks.firstWhere((b) => b.name == block));
                     },
                     validateRequired: _validateRequired,
                   ),
                   3 => _BlockStep(
-                    blocks: _blocks,
-                    selectedBlock: _selectedBlock,
+                    blocks: _blocks.map((b) => b.name).toList(),
+                    selectedBlock: _selectedBlock?.name ?? '',
                     onSelected: (block) {
-                      setState(() => _selectedBlock = block);
+                      setState(() => _selectedBlock = _blocks.firstWhere((b) => b.name == block));
                     },
                   ),
                   4 => _ReviewStep(
@@ -314,15 +330,16 @@ class _ContributePageState extends State<ContributePage> {
                     name: _nameController.text,
                     email: _emailController.text,
                     phone: _phoneController.text,
-                    block: _selectedBlock,
+                    block: _selectedBlock?.name ?? '',
                     flatNumber: _flatController.text,
                     gotram: _gotramController.text,
                     onEdit: _editStep,
                   ),
                   _ => _PaymentStep(
                     amount: amount,
-                    block: _selectedBlock,
+                    block: _selectedBlock?.name ?? '',
                     upiId: _selectedUpiId,
+                    qrImageUrl: _selectedQrImageUrl,
                     upiPayload: _upiUri.toString(),
                     paymentMarkedComplete: _paymentMarkedComplete,
                   ),
@@ -781,6 +798,7 @@ class _PaymentStep extends StatelessWidget {
     required this.amount,
     required this.block,
     required this.upiId,
+    required this.qrImageUrl,
     required this.upiPayload,
     required this.paymentMarkedComplete,
   });
@@ -788,6 +806,7 @@ class _PaymentStep extends StatelessWidget {
   final int amount;
   final String block;
   final String upiId;
+  final String qrImageUrl;
   final String upiPayload;
   final bool paymentMarkedComplete;
 
@@ -887,31 +906,39 @@ class _PaymentStep extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 color: Colors.white,
-                child: QrImageView(
-                  data: upiPayload,
-                  version: QrVersions.auto,
-                  size: 220,
-                  gapless: false,
-                  eyeStyle: const QrEyeStyle(
-                    eyeShape: QrEyeShape.square,
-                    color: Colors.black,
-                  ),
-                  dataModuleStyle: const QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: Colors.black,
-                  ),
-                ),
+                child: qrImageUrl.isNotEmpty
+                    ? Image.network(
+                        qrImageUrl,
+                        width: 220,
+                        height: 220,
+                        fit: BoxFit.contain,
+                      )
+                    : QrImageView(
+                        data: upiPayload,
+                        version: QrVersions.auto,
+                        size: 220,
+                        gapless: false,
+                        eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: Colors.black,
+                        ),
+                        dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Colors.black,
+                        ),
+                      ),
               ),
               const SizedBox(height: 14),
-              Text(
-                'UPI ID: $upiId',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: _ink,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
+              if (upiId.isNotEmpty)
+                Text(
+                  'UPI ID: $upiId',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

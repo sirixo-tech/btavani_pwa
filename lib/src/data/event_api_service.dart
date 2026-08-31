@@ -23,12 +23,17 @@ class EventApiService {
         final gallery = (data['gallery'] as List<dynamic>?)
             ?.map((json) => GalleryPhoto.fromJson(json))
             .toList() ?? [];
+
+        final blocks = (data['blocks'] as List<dynamic>?)
+            ?.map((json) => Block.fromJson(json))
+            .toList() ?? [];
             
         return BootstrapData(
           events: events,
           schedule: schedule,
           announcements: announcements,
           gallery: gallery,
+          blocks: blocks,
         );
       } else {
         throw Exception('Failed to load bootstrap data. Status code: ${response.statusCode}');

@@ -134,12 +134,14 @@ class BootstrapData {
     required this.schedule,
     required this.announcements,
     required this.gallery,
+    required this.blocks,
   });
 
   final List<EventItem> events;
   final List<ScheduleItem> schedule;
   final List<AnnouncementItem> announcements;
   final List<GalleryPhoto> gallery;
+  final List<Block> blocks;
 }
 
 class GalleryPhoto {
@@ -160,6 +162,32 @@ class GalleryPhoto {
       imageUrl: json['imageUrl'] as String?,
       title: json['title'] as String? ?? '',
       subtitle: json['subtitle'] as String? ?? '',
+    );
+  }
+}
+
+class Block {
+  const Block({
+    required this.id,
+    required this.name,
+    required this.upiId,
+    required this.qrImageUrl,
+    required this.isActive,
+  });
+
+  final String id;
+  final String name;
+  final String upiId;
+  final String qrImageUrl;
+  final bool isActive;
+
+  factory Block.fromJson(Map<String, dynamic> json) {
+    return Block(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      upiId: json['upiId'] as String? ?? '',
+      qrImageUrl: json['qrImageUrl'] as String? ?? '',
+      isActive: json['isActive'] as bool? ?? true,
     );
   }
 }

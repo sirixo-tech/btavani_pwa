@@ -161,78 +161,13 @@ export const seedCmsEntries: CmsEntry[] = [
   },
 ];
 
-export const seedPayments: Payment[] = [
-  {
-    id: "pay-1001",
-    amount: 5001,
-    blockId: "blocka",
-    blockName: "Block A",
-    residentName: "Ramesh Kumar",
-    email: "ramesh.kumar@email.com",
-    phone: "9876543210",
-    flatNumber: "A-1203",
-    gotram: "Kashyap",
-    provider: "upi_qr",
-    status: "paid",
-    referenceId: "UPI-AVANI-1001",
-    createdAt: "2026-08-31T10:30:00.000Z",
-    paidAt: "2026-08-31T10:34:00.000Z",
-  },
-  {
-    id: "pay-1002",
-    amount: 2001,
-    blockId: "blockb",
-    blockName: "Block B",
-    residentName: "Neha Rao",
-    email: "neha.rao@email.com",
-    phone: "9898989898",
-    flatNumber: "B-804",
-    gotram: "",
-    provider: "upi_qr",
-    status: "pending",
-    referenceId: "",
-    createdAt: "2026-08-31T11:15:00.000Z",
-    paidAt: "",
-  },
-];
+export const seedPayments: Payment[] = [];
 
-export const seedRegistrations: Registration[] = [
-  {
-    id: "reg-1001",
-    eventTitle: "Grand Cultural Evening",
-    participantName: "Arjun Rao",
-    flatNumber: "I-1204",
-    ageGroup: "11 - 15 years",
-    mobile: "9876543210",
-    status: "confirmed",
-    createdAt: "2026-08-30T16:10:00.000Z",
-  },
-];
+export const seedRegistrations: Registration[] = [];
 
-export const seedVolunteers: VolunteerSubmission[] = [
-  {
-    id: "vol-1001",
-    name: "Priya Shah",
-    flatNumber: "C-506",
-    mobile: "9123456780",
-    roles: ["Decoration", "Photography"],
-    note: "Available weekends",
-    createdAt: "2026-08-29T12:20:00.000Z",
-  },
-];
+export const seedVolunteers: VolunteerSubmission[] = [];
 
-export const seedBids: AuctionBid[] = [
-  {
-    id: "bid-1001",
-    itemTitle: "Laddoo Auction",
-    amount: 12001,
-    bidderName: "Amit Jain",
-    flatNumber: "I-1302",
-    mobile: "9000011111",
-    status: "leading",
-    createdAt: "2026-08-31T13:05:00.000Z",
-  },
-];
+export const seedBids: AuctionBid[] = [];
 
 export function createSeedDashboardData(): DashboardData {
   const paid = seedPayments.filter((payment) => payment.status === "paid");

@@ -2,7 +2,6 @@ import { hasDatabase } from "@/lib/db";
 import { hasConfiguredAdminPassword, isAdminAuthenticated } from "@/lib/auth";
 import { getDashboardData } from "@/lib/repository";
 import {
-  clearDemoDataAction,
   createPaymentAction,
   loginAdmin,
   logoutAdmin,
@@ -114,13 +113,6 @@ export default async function AdminPage({
                 </p>
               </div>
             </div>
-            <form action={clearDemoDataAction} onSubmit={(e) => {
-              if(!confirm('WARNING: This will permanently delete ALL data (events, schedules, payments, etc.) from the database. Are you sure?')) e.preventDefault();
-            }}>
-              <button className="danger-button w-full text-xs py-2 min-h-0">
-                Clear Demo Data
-              </button>
-            </form>
           </div>
         </aside>
 

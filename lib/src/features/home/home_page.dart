@@ -139,7 +139,7 @@ class HomeTopBar extends StatelessWidget {
 
 class BrandHeader extends StatelessWidget {
   const BrandHeader({this.appSettings, super.key});
-  
+
   final Map<String, String>? appSettings;
 
   @override
@@ -147,19 +147,19 @@ class BrandHeader extends StatelessWidget {
     final logoUrl = appSettings?['app_logo'];
     return Column(
       children: [
-        logoUrl != null 
-          ? Image.network(
-              logoUrl,
-              width: 250,
-              height: 120,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => _buildFallback(),
-            )
-          : _buildFallback(),
+        logoUrl != null
+            ? Image.network(
+                logoUrl,
+                width: 250,
+                height: 120,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => _buildFallback(),
+              )
+            : _buildFallback(),
       ],
     );
   }
-  
+
   Widget _buildFallback() {
     return Image.asset(
       'assets/images/btavani.png',
@@ -236,13 +236,13 @@ class LotusPainter extends CustomPainter {
 
 class BuildingHero extends StatelessWidget {
   const BuildingHero({this.appSettings, super.key});
-  
+
   final Map<String, String>? appSettings;
 
   @override
   Widget build(BuildContext context) {
     final bannerUrl = appSettings?['home_banner'];
-    
+
     return Semantics(
       label: 'Avani community buildings and garden',
       child: ClipRRect(
@@ -253,16 +253,18 @@ class BuildingHero extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               bannerUrl != null
-                ? Image.network(
-                    bannerUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => CustomPaint(painter: BuildingScenePainter()),
-                  )
-                : Image.asset(
-                    'assets/images/avani_building.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => CustomPaint(painter: BuildingScenePainter()),
-                  ),
+                  ? Image.network(
+                      bannerUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          CustomPaint(painter: BuildingScenePainter()),
+                    )
+                  : Image.asset(
+                      'assets/images/avani_building.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          CustomPaint(painter: BuildingScenePainter()),
+                    ),
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -273,33 +275,6 @@ class BuildingHero extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
-                ),
-              ),
-              const Positioned(
-                left: 16,
-                right: 16,
-                bottom: 14,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ganesh Utsav 2026',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 21,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Bhavya Tulasi Vanam, Avani',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
@@ -459,13 +434,8 @@ class WelcomePanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Welcome, Nagesh Gadde',
+                  'Welcome, To Vanam',
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'I-1204, Block I',
-                  style: TextStyle(color: _muted, fontWeight: FontWeight.w600),
                 ),
               ],
             ),

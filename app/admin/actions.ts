@@ -98,7 +98,7 @@ export async function saveBlockAction(prevState: unknown, formData: FormData) {
     });
 
   await saveBlock(parsed);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
   return { success: true };
 }
 
@@ -137,7 +137,7 @@ export async function saveCmsAction(formData: FormData) {
     });
 
   await saveCmsEntry(parsed as Omit<CmsEntry, "id"> & { id?: string });
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function updatePaymentAction(formData: FormData) {
@@ -160,7 +160,7 @@ export async function updatePaymentAction(formData: FormData) {
     parsed.status as PaymentStatus,
     parsed.referenceId || "",
   );
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function createPaymentAction(formData: FormData) {
@@ -193,14 +193,14 @@ export async function createPaymentAction(formData: FormData) {
     });
 
   await createPayment(parsed);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function clearDemoDataAction() {
   await requireAdmin();
   const { clearDemoData } = await import("@/lib/repository");
   await clearDemoData();
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function deleteCmsAction(formData: FormData) {

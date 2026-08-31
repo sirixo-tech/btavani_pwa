@@ -34,7 +34,7 @@ export default async function SettingsPage() {
             <input type="hidden" name="id" value={homeBanner.id} />
             <input type="hidden" name="section" value="app_setting" />
             <input type="hidden" name="title" value={homeBanner.title} />
-            <input type="hidden" name="isPublished" value="true" />
+            <input type="hidden" name="isPublished" value="on" />
             
             <div>
               <label className="block text-sm font-medium leading-6 text-zinc-900 mb-2">Banner Image</label>
@@ -55,7 +55,7 @@ export default async function SettingsPage() {
             <input type="hidden" name="id" value={appLogo.id} />
             <input type="hidden" name="section" value="app_setting" />
             <input type="hidden" name="title" value={appLogo.title} />
-            <input type="hidden" name="isPublished" value="true" />
+            <input type="hidden" name="isPublished" value="on" />
             
             <div>
               <label className="block text-sm font-medium leading-6 text-zinc-900 mb-2">Logo Image</label>

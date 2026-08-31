@@ -257,6 +257,9 @@ export async function getMobileBootstrap() {
     volunteerRoles: data.cmsEntries.filter(
       (entry) => entry.section === "volunteer_role" && entry.isPublished,
     ),
+    appSettings: data.cmsEntries.filter(
+      (entry) => entry.section === "app_setting" && entry.isPublished,
+    ),
     settings: data.cmsEntries.filter(
       (entry) => entry.section === "app_setting" && entry.isPublished,
     ),

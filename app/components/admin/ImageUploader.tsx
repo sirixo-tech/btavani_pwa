@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { PhotoIcon } from "@heroicons/react/24/outline";
 
 export function ImageUploader({
@@ -10,6 +10,7 @@ export function ImageUploader({
   defaultImage?: string;
   name?: string;
 }) {
+  const inputId = React.useId();
   const [preview, setPreview] = useState<string | null>(defaultImage || null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,9 +38,9 @@ export function ImageUploader({
           {preview ? (
             <div className="mx-auto flex flex-col items-center">
               <img src={preview} alt="Preview" className="h-40 w-auto rounded-md object-contain shadow-sm mb-4" />
-              <label htmlFor="file-upload" className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50">
+              <label htmlFor={inputId} className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50">
                 Replace image
-                <input id="file-upload" name={name} type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
+                <input id={inputId} name={name} type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
               </label>
             </div>
           ) : (
@@ -47,11 +48,11 @@ export function ImageUploader({
               <PhotoIcon className="mx-auto h-12 w-12 text-zinc-300" aria-hidden="true" />
               <div className="mt-4 flex text-sm leading-6 text-zinc-600 justify-center">
                 <label
-                  htmlFor="file-upload"
+                  htmlFor={inputId}
                   className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
                 >
                   <span>Upload a file</span>
-                  <input id="file-upload" name={name} type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
+                  <input id={inputId} name={name} type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>

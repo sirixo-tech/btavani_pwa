@@ -1,0 +1,10 @@
+.dart_tool/
+.git/
+.idea/
+.pub-cache/
+android/.gradle/
+build/
+coverage/
+ios/Flutter/ephemeral/
+*.iml
+*.log

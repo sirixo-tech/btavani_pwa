@@ -1,0 +1,148 @@
+part of '../../../main.dart';
+
+class MorePage extends StatelessWidget {
+  const MorePage({required this.onTabSelected, super.key});
+
+  final ValueChanged<int> onTabSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PageTopBar(title: 'More', compact: true),
+            const SizedBox(height: 4),
+            const BrandMiniHeader(),
+            const SizedBox(height: 20),
+            MenuTile(
+              icon: Icons.calendar_month,
+              title: "Today's Schedule",
+              subtitle: 'Pooja, aarti, cultural program and prasadam',
+              onTap: () => _push(context, const SchedulePage()),
+            ),
+            MenuTile(
+              icon: Icons.campaign,
+              title: 'Announcements',
+              subtitle: 'Society notices and festival updates',
+              onTap: () => _push(context, const AnnouncementsPage()),
+            ),
+            MenuTile(
+              icon: Icons.photo_library,
+              title: 'Utsav Gallery',
+              subtitle: 'Photos and videos from celebrations',
+              onTap: () => _push(context, const GalleryPage()),
+            ),
+            MenuTile(
+              icon: Icons.gavel,
+              title: 'Laddoo Auction',
+              subtitle: 'Live bidding opens during the event',
+              onTap: () => _push(context, const AuctionPage()),
+            ),
+            MenuTile(
+              icon: Icons.assignment_turned_in,
+              title: 'Participation Form',
+              subtitle: 'Register for singing, dance, skits and kids events',
+              onTap: () => _push(context, const EventRegistrationPage()),
+            ),
+            MenuTile(
+              icon: Icons.handshake,
+              title: 'Volunteer',
+              subtitle: 'Choose the area where you can help',
+              onTap: () => _push(context, const VolunteerPage()),
+            ),
+            MenuTile(
+              icon: Icons.favorite,
+              title: 'Contribution',
+              subtitle: 'Support Avani Ganesh Utsav 2026',
+              onTap: () => onTabSelected(2),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BrandMiniHeader extends StatelessWidget {
+  const BrandMiniHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_maroonDark, _maroon],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: _maroon.withValues(alpha: 0.24),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Image.asset(
+        'assets/images/btavani.png',
+        height: 86,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
+class MenuTile extends StatelessWidget {
+  const MenuTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: panelDecoration(),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: _surfaceWarm,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: _maroon),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: _muted, fontWeight: FontWeight.w600),
+        ),
+        trailing: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: _maroon.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.chevron_right, color: _maroon, size: 20),
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+}

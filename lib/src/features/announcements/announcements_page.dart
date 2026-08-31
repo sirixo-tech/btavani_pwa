@@ -1,0 +1,115 @@
+part of '../../../main.dart';
+
+class AnnouncementsPage extends StatefulWidget {
+  const AnnouncementsPage({super.key});
+
+  @override
+  State<AnnouncementsPage> createState() => _AnnouncementsPageState();
+}
+
+class _AnnouncementsPageState extends State<AnnouncementsPage> {
+  int filter = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return DetailScaffold(
+      title: 'Announcements',
+      useScroll: false,
+      trailing: IconButton(
+        tooltip: 'Search',
+        onPressed: () {},
+        icon: Badge(
+          backgroundColor: _maroon,
+          smallSize: 8,
+          child: const Icon(Icons.search),
+        ),
+      ),
+      child: Column(
+        children: [
+          SegmentedPill(
+            labels: const ['All', 'General', 'Events', 'Important'],
+            selectedIndex: filter,
+            onChanged: (value) => setState(() => filter = value),
+          ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: ListView.separated(
+              itemCount: announcements.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) =>
+                  AnnouncementCard(item: announcements[index]),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextButton(
+            onPressed: () {},
+            child: const Text('View All Announcements'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AnnouncementCard extends StatelessWidget {
+  const AnnouncementCard({required this.item, super.key});
+
+  final AnnouncementItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: panelDecoration(),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                LabelPill(label: item.label, color: item.color),
+                const SizedBox(height: 8),
+                Text(
+                  item.title,
+                  style: const TextStyle(
+                    color: _maroonDark,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  item.body,
+                  style: const TextStyle(
+                    color: _muted,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item.date,
+                  style: const TextStyle(
+                    color: _muted,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              color: item.color.withValues(alpha: 0.11),
+              border: Border.all(color: item.color.withValues(alpha: 0.12)),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Icon(item.icon, color: item.color, size: 29),
+          ),
+        ],
+      ),
+    );
+  }
+}

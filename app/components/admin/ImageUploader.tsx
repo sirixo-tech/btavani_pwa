@@ -15,8 +15,8 @@ export function ImageUploader({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Image must be smaller than 2MB");
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Image must be smaller than 10MB");
         e.target.value = "";
         return;
       }
@@ -55,7 +55,7 @@ export function ImageUploader({
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs leading-5 text-zinc-500">PNG, JPG, GIF up to 2MB</p>
+              <p className="text-xs leading-5 text-zinc-500">PNG, JPG, GIF up to 10MB</p>
             </>
           )}
         </div>

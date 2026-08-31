@@ -40,8 +40,8 @@ function checked(formData: FormData, key: string) {
 
 async function fileToDataUrl(file: File | null) {
   if (!file || file.size === 0) return "";
-  if (file.size > 2 * 1024 * 1024) {
-    throw new Error("Image is too large. Keep uploads under 2 MB.");
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error("Image is too large. Keep uploads under 10 MB.");
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

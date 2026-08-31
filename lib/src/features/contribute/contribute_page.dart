@@ -13,6 +13,7 @@ class _ContributePageState extends State<ContributePage> {
   static const int minimumContributionAmount = 2000;
   static const int maximumContributionAmount = 99000;
   List<Block> _blocks = [];
+  Map<String, String>? _appSettings;
   bool _isLoadingBlocks = true;
 
   final _detailsFormKey = GlobalKey<FormState>();
@@ -51,6 +52,7 @@ class _ContributePageState extends State<ContributePage> {
       if (!mounted) return;
       setState(() {
         _blocks = bootstrap.blocks;
+        _appSettings = bootstrap.appSettings;
         if (_blocks.isNotEmpty) {
            _selectedBlock = _blocks.first;
         }
@@ -122,8 +124,14 @@ class _ContributePageState extends State<ContributePage> {
           gotram: _gotramController.text.trim(),
         );
         if (!mounted) return;
-        setState(() => _paymentMarkedComplete = true);
         _showSnack('Payment marked complete. Thank you for contributing.');
+        
+        // Navigate to home page
+        if (widget.onBackToHome != null) {
+          widget.onBackToHome?.call();
+        } else if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
       } catch (e) {
         if (!mounted) return;
         _showSnack('Failed to record payment: $e');
@@ -246,22 +254,22 @@ class _ContributePageState extends State<ContributePage> {
               trailing: const SizedBox(width: 48),
             ),
             const SizedBox(height: 8),
-            Image.asset(
-              'assets/images/btavani.png',
-              height: 52,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return const Text(
-                  'BT AVANI',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _gold,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
+            _appSettings != null && _appSettings!['app_logo'] != null
+                ? Image.network(
+                    _appSettings!['app_logo']!,
+                    height: 52,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      'assets/images/btavani.png',
+                      height: 52,
+                      fit: BoxFit.contain,
+                    ),
+                  )
+                : Image.asset(
+                    'assets/images/btavani.png',
+                    height: 52,
+                    fit: BoxFit.contain,
                   ),
-                );
-              },
-            ),
             const SizedBox(height: 14),
             const Text(
               'Contribute to Avani Ganesh Utsav 2026',

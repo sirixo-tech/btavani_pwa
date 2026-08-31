@@ -28,12 +28,21 @@ class EventApiService {
             ?.map((json) => Block.fromJson(json))
             .toList() ?? [];
             
+        final appSettingsList = (data['appSettings'] as List<dynamic>?) ?? [];
+        final Map<String, String> appSettings = {};
+        for (var item in appSettingsList) {
+          if (item['id'] != null && item['imageUrl'] != null) {
+            appSettings[item['id']] = item['imageUrl'];
+          }
+        }
+
         return BootstrapData(
           events: events,
           schedule: schedule,
           announcements: announcements,
           gallery: gallery,
           blocks: blocks,
+          appSettings: appSettings,
         );
       } else {
         throw Exception('Failed to load bootstrap data. Status code: ${response.statusCode}');

@@ -135,6 +135,7 @@ class BootstrapData {
     required this.announcements,
     required this.gallery,
     required this.blocks,
+    required this.appSettings,
   });
 
   final List<EventItem> events;
@@ -142,6 +143,7 @@ class BootstrapData {
   final List<AnnouncementItem> announcements;
   final List<GalleryPhoto> gallery;
   final List<Block> blocks;
+  final Map<String, String> appSettings;
 }
 
 class GalleryPhoto {

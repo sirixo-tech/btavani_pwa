@@ -1,9 +1,35 @@
 part of '../../../main.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({required this.onTabSelected, super.key});
 
   final ValueChanged<int> onTabSelected;
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  Map<String, String>? _appSettings;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      final bootstrap = await EventApiService().fetchBootstrap();
+      if (mounted) {
+        setState(() {
+          _appSettings = bootstrap.appSettings;
+        });
+      }
+    } catch (e) {
+      // Use defaults
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,11 +39,11 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HomeTopBar(onMenuTap: () => onTabSelected(3)),
+            HomeTopBar(onMenuTap: () => widget.onTabSelected(3)),
             const SizedBox(height: 6),
-            const BrandHeader(),
+            BrandHeader(appSettings: _appSettings),
             const SizedBox(height: 14),
-            const BuildingHero(),
+            BuildingHero(appSettings: _appSettings),
             const SizedBox(height: 16),
             const WelcomePanel(),
             const SizedBox(height: 20),
@@ -38,8 +64,9 @@ class HomePage extends StatelessWidget {
                   label: 'Contribute',
                   icon: Icons.volunteer_activism,
                   color: _maroon,
-                  onTap: () => onTabSelected(2),
+                  onTap: () => widget.onTabSelected(2),
                 ),
+
                 QuickActionCard(
                   label: 'Participate',
                   icon: Icons.theater_comedy,
@@ -111,19 +138,34 @@ class HomeTopBar extends StatelessWidget {
 }
 
 class BrandHeader extends StatelessWidget {
-  const BrandHeader({super.key});
+  const BrandHeader({this.appSettings, super.key});
+  
+  final Map<String, String>? appSettings;
 
   @override
   Widget build(BuildContext context) {
+    final logoUrl = appSettings?['app_logo'];
     return Column(
       children: [
-        Image.asset(
-          'assets/images/btavani.png',
-          width: 250,
-          height: 120,
-          fit: BoxFit.contain,
-        ),
+        logoUrl != null 
+          ? Image.network(
+              logoUrl,
+              width: 250,
+              height: 120,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => _buildFallback(),
+            )
+          : _buildFallback(),
       ],
+    );
+  }
+  
+  Widget _buildFallback() {
+    return Image.asset(
+      'assets/images/btavani.png',
+      width: 250,
+      height: 120,
+      fit: BoxFit.contain,
     );
   }
 }
@@ -193,10 +235,14 @@ class LotusPainter extends CustomPainter {
 }
 
 class BuildingHero extends StatelessWidget {
-  const BuildingHero({super.key});
+  const BuildingHero({this.appSettings, super.key});
+  
+  final Map<String, String>? appSettings;
 
   @override
   Widget build(BuildContext context) {
+    final bannerUrl = appSettings?['home_banner'];
+    
     return Semantics(
       label: 'Avani community buildings and garden',
       child: ClipRRect(
@@ -206,12 +252,17 @@ class BuildingHero extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                'assets/images/avani_building.jpg',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    CustomPaint(painter: BuildingScenePainter()),
-              ),
+              bannerUrl != null
+                ? Image.network(
+                    bannerUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => CustomPaint(painter: BuildingScenePainter()),
+                  )
+                : Image.asset(
+                    'assets/images/avani_building.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => CustomPaint(painter: BuildingScenePainter()),
+                  ),
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { clearMobileCache, getCachedJson, setCachedJson } from "./cache";
+import { sendPaymentSuccessEmail } from "./email";
 import { hasDatabase, query } from "./db";
 import { createSeedDashboardData } from "./seed";
 import type {
@@ -392,13 +393,21 @@ export async function updatePaymentStatus(
     return payment;
   }
 
-  await query(
+  const result = await query(
     `update payments
      set status = $2, reference_id = $3, paid_at = case when $2 = 'paid' then coalesce(paid_at, now()) else paid_at end
-     where id = $1`,
+     where id = $1
+     returning email, resident_name, amount, block_name`,
     [id, status, referenceId],
   );
   await clearMobileCache();
+
+  if (status === "paid" && result.rows.length > 0) {
+    const row = result.rows[0];
+    if (row.email) {
+      sendPaymentSuccessEmail(row.email, row.resident_name, row.amount, row.block_name, referenceId);
+    }
+  }
 }
 
 export async function createPayment(input: {
@@ -460,6 +469,11 @@ export async function createPayment(input: {
     ],
   );
   await clearMobileCache();
+  
+  if (payment.status === "paid" && payment.email) {
+    sendPaymentSuccessEmail(payment.email, payment.residentName, payment.amount, payment.blockName, payment.referenceId);
+  }
+  
   return payment;
 }
 

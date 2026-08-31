@@ -5,7 +5,6 @@ import {
   createPaymentAction,
   loginAdmin,
   logoutAdmin,
-  saveBlockAction,
   saveCmsAction,
   updatePaymentAction,
 } from "./actions";

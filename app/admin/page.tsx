@@ -10,6 +10,7 @@ import {
   updatePaymentAction,
 } from "./actions";
 import type { Block, CmsEntry, Payment } from "@/lib/types";
+import { BlockForm } from "./BlockForm";
 
 export const dynamic = "force-dynamic";
 
@@ -462,74 +463,6 @@ function PaymentTable({ payments }: { payments: Payment[] }) {
         </tbody>
       </table>
     </div>
-  );
-}
-
-function BlockForm({ block }: { block: Block }) {
-  return (
-    <form
-      action={saveBlockAction}
-      className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
-    >
-      <input type="hidden" name="id" value={block.id} />
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-zinc-900">{block.name}</h3>
-          <p className="text-xs font-medium text-zinc-500">
-            QR and payment destination
-          </p>
-        </div>
-        <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 cursor-pointer">
-          <input
-            type="checkbox"
-            name="isActive"
-            defaultChecked={block.isActive}
-            className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 size-4 cursor-pointer"
-          />
-          Active
-        </label>
-      </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <Input name="name" label="Block name" defaultValue={block.name} required />
-        <Select
-          name="paymentProvider"
-          label="Mode"
-          defaultValue={block.paymentProvider}
-          options={providers}
-        />
-        <Input
-          name="organizerName"
-          label="Organizer"
-          defaultValue={block.organizerName}
-        />
-        <Input
-          name="organizerPhone"
-          label="Organizer phone"
-          defaultValue={block.organizerPhone}
-        />
-        <Input name="upiId" label="UPI ID" defaultValue={block.upiId} />
-        <Input
-          name="qrImageUrl"
-          label="QR image URL"
-          defaultValue={block.qrImageUrl}
-        />
-        <Input
-          name="razorpayKeyId"
-          label="Razorpay key ID"
-          defaultValue={block.razorpayKeyId}
-        />
-        <Input
-          name="razorpayLink"
-          label="Razorpay payment link"
-          defaultValue={block.razorpayLink}
-        />
-      </div>
-      <label className="mt-3 block">
-        <span className="label">Upload QR image</span>
-        <input className="file-input" name="qrFile" type="file" accept="image/*" />
-      </label>
-      <button className="primary-button mt-4">Save block</button>
-    </form>
   );
 }
 

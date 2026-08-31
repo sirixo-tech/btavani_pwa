@@ -63,7 +63,7 @@ export async function logoutAdmin() {
   redirect("/admin");
 }
 
-export async function saveBlockAction(formData: FormData) {
+export async function saveBlockAction(prevState: any, formData: FormData) {
   await requireAdmin();
 
   const uploadedQr = await fileToDataUrl(formData.get("qrFile") as File | null);
@@ -97,6 +97,7 @@ export async function saveBlockAction(formData: FormData) {
 
   await saveBlock(parsed);
   revalidatePath("/admin");
+  return { success: true };
 }
 
 export async function saveCmsAction(formData: FormData) {

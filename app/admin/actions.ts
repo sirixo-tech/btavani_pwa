@@ -192,3 +192,10 @@ export async function createPaymentAction(formData: FormData) {
   await createPayment(parsed);
   revalidatePath("/admin");
 }
+
+export async function clearDemoDataAction() {
+  await requireAdmin();
+  const { clearDemoData } = await import("@/lib/repository");
+  await clearDemoData();
+  revalidatePath("/admin");
+}

@@ -561,3 +561,17 @@ export async function createAuctionBid(
   await clearMobileCache();
   return bid;
 }
+
+export async function clearDemoData() {
+  if (!hasDatabase()) {
+    memory.cmsEntries = [];
+    memory.payments = [];
+    memory.registrations = [];
+    memory.volunteers = [];
+    memory.bids = [];
+    return;
+  }
+
+  await query("TRUNCATE TABLE cms_entries, payments, event_registrations, volunteer_submissions, auction_bids CASCADE;");
+  await clearMobileCache();
+}

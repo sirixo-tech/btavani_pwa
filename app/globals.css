@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f2e9;
-  --foreground: #17120f;
+  --background: #fafafa;
+  --foreground: #09090b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Inter", "Helvetica Neue", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
@@ -23,7 +23,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 button,
@@ -40,29 +40,32 @@ button {
 .label {
   display: block;
   margin-bottom: 0.4rem;
-  color: #4e070b;
+  color: #3f3f46;
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .input,
 .file-input {
   width: 100%;
   min-height: 2.75rem;
-  border: 1px solid #eadbc4;
-  border-radius: 0.5rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.375rem;
   background: #ffffff;
-  padding: 0.72rem 0.85rem;
-  color: #17120f;
+  padding: 0.5rem 0.75rem;
+  color: #09090b;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 500;
   outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .input:focus,
 .file-input:focus {
-  border-color: #8e1119;
-  box-shadow: 0 0 0 3px rgb(142 17 25 / 0.12);
+  border-color: #09090b;
+  box-shadow: 0 0 0 1px #09090b;
 }
 
 .primary-button {
@@ -70,48 +73,70 @@ button {
   min-height: 2.75rem;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, #8e1119, #4e070b);
-  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  background: #09090b;
+  padding: 0.5rem 1rem;
   color: #ffffff;
   font-size: 0.875rem;
-  font-weight: 900;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
+  font-weight: 600;
+  transition: background-color 150ms ease;
 }
 
 .primary-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgb(78 7 11 / 0.14);
+  background: #27272a;
+}
+
+.danger-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  background: #ef4444;
+  padding: 0.5rem 1rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 150ms ease;
+}
+
+.danger-button:hover {
+  background: #dc2626;
 }
 
 .mini-input {
   min-height: 2rem;
-  border: 1px solid #eadbc4;
-  border-radius: 0.5rem;
-  background: #fffaf0;
-  padding: 0.35rem 0.5rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.375rem;
+  background: #ffffff;
+  padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .mini-button {
   min-height: 2rem;
-  border-radius: 0.5rem;
-  background: #4e070b;
-  padding: 0.35rem 0.65rem;
+  border-radius: 0.375rem;
+  background: #09090b;
+  padding: 0.25rem 0.5rem;
   color: #ffffff;
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 600;
+}
+
+.mini-button:hover {
+  background: #27272a;
 }
 
 .table-head {
-  padding: 0.7rem 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #71717a;
+  font-weight: 600;
+  border-bottom: 1px solid #e4e4e7;
 }
 
 .table-cell {
-  padding: 0.8rem 0.75rem;
-  vertical-align: top;
-  font-weight: 700;
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  font-weight: 500;
 }

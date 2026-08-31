@@ -2,6 +2,7 @@ import { hasDatabase } from "@/lib/db";
 import { hasConfiguredAdminPassword, isAdminAuthenticated } from "@/lib/auth";
 import { getDashboardData } from "@/lib/repository";
 import {
+  clearDemoDataAction,
   createPaymentAction,
   loginAdmin,
   logoutAdmin,
@@ -62,21 +63,21 @@ export default async function AdminPage({
   const leadingBid = data.bids[0];
 
   return (
-    <main className="min-h-screen bg-[#f7f2e9] text-[#17120f]">
-      <div className="mx-auto flex max-w-[1480px] gap-0 xl:gap-6">
-        <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-[#eadbc4] bg-[#fffaf0] px-6 py-7 xl:flex">
+    <main className="min-h-screen bg-zinc-50 text-zinc-900 font-sans">
+      <div className="mx-auto flex max-w-[1480px] gap-0 xl:gap-8">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50/50 px-6 py-8 xl:flex">
           <div className="flex items-center gap-3">
-            <div className="grid size-12 place-items-center rounded-lg bg-[#8e1119] text-lg font-black text-white">
+            <div className="grid size-10 place-items-center rounded-lg bg-zinc-900 text-sm font-bold text-white shadow-sm">
               BT
             </div>
             <div>
-              <p className="text-sm font-black text-[#8e1119]">BT AVANI</p>
-              <p className="text-xs font-bold text-[#756860]">
-                Ganesh Utsav Admin
+              <p className="text-sm font-bold text-zinc-900">BT AVANI</p>
+              <p className="text-xs font-medium text-zinc-500">
+                Festival Admin
               </p>
             </div>
           </div>
-          <nav className="mt-10 space-y-2 text-sm font-extrabold text-[#4e070b]">
+          <nav className="mt-10 space-y-1 text-sm font-medium text-zinc-600">
             {[
               "Overview",
               "Payments",
@@ -89,51 +90,64 @@ export default async function AdminPage({
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(" ", "-")}`}
-                className="block rounded-lg px-4 py-3 hover:bg-[#fff3de]"
+                className="block rounded-md px-3 py-2 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
               >
                 {item}
               </a>
             ))}
           </nav>
-          <div className="mt-auto rounded-lg border border-[#eadbc4] bg-white p-4">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#756860]">
-              System
-            </p>
-            <p className="mt-2 text-sm font-extrabold">
-              {hasDatabase() ? "Postgres connected" : "Local seeded preview"}
-            </p>
-            <p className="mt-1 text-xs font-semibold text-[#756860]">
-              Redis cache activates when REDIS_URL is set.
-            </p>
+          <div className="mt-auto space-y-4">
+            <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                System Status
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <div className={`size-2 rounded-full ${hasDatabase() ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                <p className="text-xs font-medium text-zinc-700">
+                  {hasDatabase() ? "PostgreSQL Connected" : "Local Preview"}
+                </p>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <div className={`size-2 rounded-full ${process.env.REDIS_URL ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
+                <p className="text-xs font-medium text-zinc-700">
+                  {process.env.REDIS_URL ? "Redis Active" : "Redis Pending"}
+                </p>
+              </div>
+            </div>
+            <form action={clearDemoDataAction} onSubmit={(e) => {
+              if(!confirm('WARNING: This will permanently delete ALL data (events, schedules, payments, etc.) from the database. Are you sure?')) e.preventDefault();
+            }}>
+              <button className="danger-button w-full text-xs py-2 min-h-0">
+                Clear Demo Data
+              </button>
+            </form>
           </div>
         </aside>
 
-        <section className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">
-          <header className="rounded-lg border border-[#eadbc4] bg-white p-5 shadow-sm">
+        <section className="min-w-0 flex-1 px-4 py-8 sm:px-6 lg:px-8">
+          <header className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8e1119]">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">
                   Avani Ganesh Utsav 2026
                 </p>
-                <h1 className="mt-2 text-3xl font-black tracking-normal text-[#17120f]">
-                  Festival operations dashboard
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
+                  Operations Dashboard
                 </h1>
-                <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-[#756860]">
-                  Manage mobile app content, seven-block payment setup,
-                  registrations, volunteers, auction bids and reconciliation
-                  from one server-rendered console.
+                <p className="mt-1 max-w-2xl text-sm font-medium text-zinc-500">
+                  Manage mobile app content, block payment setups, registrations, volunteers, and auction bids.
                 </p>
               </div>
               <form action={logoutAdmin}>
-                <button className="rounded-lg border border-[#8e1119] px-4 py-3 text-sm font-black text-[#8e1119] hover:bg-[#fff3de]">
+                <button className="rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors">
                   Sign out
                 </button>
               </form>
             </div>
             {!hasConfiguredAdminPassword() && (
-              <div className="mt-4 rounded-lg border border-[#e7a32b] bg-[#fff8ec] px-4 py-3 text-sm font-bold text-[#4e070b]">
-                Set ADMIN_PASSWORD before production. The local fallback is only
-                for development.
+              <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 flex items-center gap-2">
+                <svg className="size-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Please set ADMIN_PASSWORD in your environment variables for production security.
               </div>
             )}
           </header>
@@ -277,15 +291,15 @@ export default async function AdminPage({
 
 function LoginScreen({ invalid }: { invalid: boolean }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f7f2e9] px-4">
-      <section className="w-full max-w-md rounded-lg border border-[#eadbc4] bg-white p-7 shadow-sm">
-        <div className="grid size-14 place-items-center rounded-lg bg-[#8e1119] text-xl font-black text-white">
+    <main className="grid min-h-screen place-items-center bg-zinc-50 px-4 font-sans">
+      <section className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <div className="grid size-12 place-items-center rounded-lg bg-zinc-900 text-lg font-bold text-white shadow-sm">
           BT
         </div>
-        <h1 className="mt-6 text-2xl font-black text-[#17120f]">
-          Admin dashboard
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-zinc-900">
+          Admin Login
         </h1>
-        <p className="mt-2 text-sm font-semibold leading-6 text-[#756860]">
+        <p className="mt-2 text-sm font-medium text-zinc-500">
           Sign in to manage BT AVANI content, payments, QR setup and resident
           submissions.
         </p>
@@ -301,7 +315,7 @@ function LoginScreen({ invalid }: { invalid: boolean }) {
             />
           </label>
           {invalid && (
-            <p className="rounded-lg border border-[#8e1119] bg-[#fff3de] px-3 py-2 text-sm font-bold text-[#8e1119]">
+            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
               Invalid password.
             </p>
           )}
@@ -322,12 +336,12 @@ function StatCard({
   detail: string;
 }) {
   return (
-    <article className="rounded-lg border border-[#eadbc4] bg-white p-5 shadow-sm">
-      <p className="text-xs font-black uppercase tracking-[0.18em] text-[#756860]">
+    <article className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
         {label}
       </p>
-      <p className="mt-3 text-2xl font-black text-[#4e070b]">{value}</p>
-      <p className="mt-1 text-sm font-bold text-[#756860]">{detail}</p>
+      <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900">{value}</p>
+      <p className="mt-1 text-sm font-medium text-zinc-500">{detail}</p>
     </article>
   );
 }
@@ -346,33 +360,35 @@ function Panel({
   return (
     <section
       id={id}
-      className="mt-5 rounded-lg border border-[#eadbc4] bg-white p-5 shadow-sm"
+      className="mt-6 rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden"
     >
-      <div className="mb-5">
-        <h2 className="text-xl font-black text-[#17120f]">{title}</h2>
-        <p className="mt-1 text-sm font-semibold text-[#756860]">{subtitle}</p>
+      <div className="border-b border-zinc-100 bg-zinc-50/50 px-6 py-5">
+        <h2 className="text-lg font-semibold text-zinc-900">{title}</h2>
+        <p className="mt-1 text-sm font-medium text-zinc-500">{subtitle}</p>
       </div>
-      {children}
+      <div className="p-6">
+        {children}
+      </div>
     </section>
   );
 }
 
 function PulseRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-[#eadbc4] bg-[#fffaf0] px-4 py-3">
-      <span className="text-sm font-bold text-[#756860]">{label}</span>
-      <span className="text-sm font-black text-[#4e070b]">{value}</span>
+    <div className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
+      <span className="text-sm font-medium text-zinc-600">{label}</span>
+      <span className="text-sm font-semibold text-zinc-900">{value}</span>
     </div>
   );
 }
 
 function CreatePaymentForm({ blocks }: { blocks: Block[] }) {
   return (
-    <form action={createPaymentAction} className="rounded-lg bg-[#fffaf0] p-4">
-      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#8e1119]">
-        Add offline payment
+    <form action={createPaymentAction} className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+      <h3 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+        Record Offline Payment
       </h3>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Input name="residentName" label="Resident name" required />
         <Input name="amount" label="Amount" type="number" required />
         <Select
@@ -397,9 +413,9 @@ function CreatePaymentForm({ blocks }: { blocks: Block[] }) {
 
 function PaymentTable({ payments }: { payments: Payment[] }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-zinc-100">
       <table className="w-full min-w-[780px] text-left text-sm">
-        <thead className="text-xs font-black uppercase tracking-[0.14em] text-[#756860]">
+        <thead className="bg-zinc-50 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
           <tr>
             <th className="table-head">Resident</th>
             <th className="table-head">Block</th>
@@ -411,21 +427,21 @@ function PaymentTable({ payments }: { payments: Payment[] }) {
         </thead>
         <tbody>
           {payments.map((payment) => (
-            <tr key={payment.id} className="border-t border-[#eadbc4]">
+            <tr key={payment.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/50 transition-colors">
               <td className="table-cell">
-                <p className="font-black">{payment.residentName}</p>
-                <p className="text-xs font-semibold text-[#756860]">
-                  {payment.flatNumber} - {formatDate(payment.createdAt)}
+                <p className="font-semibold text-zinc-900">{payment.residentName}</p>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  {payment.flatNumber} • {formatDate(payment.createdAt)}
                 </p>
               </td>
-              <td className="table-cell">{payment.blockName}</td>
-              <td className="table-cell font-black">{money(payment.amount)}</td>
+              <td className="table-cell text-zinc-600">{payment.blockName}</td>
+              <td className="table-cell font-semibold text-zinc-900">{money(payment.amount)}</td>
               <td className="table-cell">
-                <span className="rounded-lg bg-[#fff3de] px-2 py-1 text-xs font-black text-[#8e1119]">
+                <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800 ring-1 ring-inset ring-zinc-200">
                   {payment.status}
                 </span>
               </td>
-              <td className="table-cell">{payment.referenceId || "Pending"}</td>
+              <td className="table-cell text-zinc-600">{payment.referenceId || "Pending"}</td>
               <td className="table-cell">
                 <form action={updatePaymentAction} className="flex gap-2">
                   <input type="hidden" name="id" value={payment.id} />
@@ -461,26 +477,27 @@ function BlockForm({ block }: { block: Block }) {
   return (
     <form
       action={saveBlockAction}
-      className="rounded-lg border border-[#eadbc4] bg-[#fffaf0] p-4"
+      className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
     >
       <input type="hidden" name="id" value={block.id} />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-black text-[#4e070b]">{block.name}</h3>
-          <p className="text-xs font-bold text-[#756860]">
+          <h3 className="text-base font-semibold text-zinc-900">{block.name}</h3>
+          <p className="text-xs font-medium text-zinc-500">
             QR and payment destination
           </p>
         </div>
-        <label className="flex items-center gap-2 text-xs font-black text-[#4e070b]">
+        <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 cursor-pointer">
           <input
             type="checkbox"
             name="isActive"
             defaultChecked={block.isActive}
+            className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 size-4 cursor-pointer"
           />
           Active
         </label>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <Input name="name" label="Block name" defaultValue={block.name} required />
         <Select
           name="paymentProvider"
@@ -526,11 +543,11 @@ function BlockForm({ block }: { block: Block }) {
 
 function CmsForm() {
   return (
-    <form action={saveCmsAction} className="rounded-lg bg-[#fffaf0] p-4">
-      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-[#8e1119]">
+    <form action={saveCmsAction} className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+      <h3 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
         Create or update content
       </h3>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Input name="id" label="Existing ID optional" />
         <Select
           name="section"
@@ -549,12 +566,12 @@ function CmsForm() {
           type="number"
           defaultValue="10"
         />
-        <label className="flex items-center gap-2 self-end rounded-lg border border-[#eadbc4] bg-white px-3 py-3 text-sm font-black text-[#4e070b]">
-          <input type="checkbox" name="isPublished" defaultChecked />
+        <label className="flex items-center gap-2 self-end rounded-md border border-zinc-200 bg-white px-3 py-[0.6rem] text-sm font-medium text-zinc-700 cursor-pointer shadow-sm">
+          <input type="checkbox" name="isPublished" defaultChecked className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 size-4 cursor-pointer" />
           Published
         </label>
       </div>
-      <label className="mt-3 block">
+      <label className="mt-4 block">
         <span className="label">Body</span>
         <textarea className="input min-h-28" name="body" />
       </label>
@@ -577,27 +594,27 @@ function CmsForm() {
 
 function CmsList({ entries }: { entries: CmsEntry[] }) {
   return (
-    <div className="grid max-h-[620px] gap-3 overflow-y-auto pr-1">
+    <div className="grid max-h-[620px] gap-4 overflow-y-auto pr-2 custom-scrollbar">
       {entries.map((entry) => (
-        <article key={entry.id} className="rounded-lg border border-[#eadbc4] p-4">
+        <article key={entry.id} className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#8e1119]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                 {entry.section}
               </p>
-              <h3 className="mt-1 text-base font-black">{entry.title}</h3>
-              <p className="mt-1 text-sm font-semibold text-[#756860]">
+              <h3 className="mt-1 text-base font-semibold text-zinc-900">{entry.title}</h3>
+              <p className="mt-1 text-sm font-medium text-zinc-500">
                 {entry.subtitle || entry.label || entry.venue || "No subtitle"}
               </p>
             </div>
-            <span className="rounded-lg bg-[#fff3de] px-2 py-1 text-xs font-black text-[#4e070b]">
+            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${entry.isPublished ? 'bg-zinc-100 text-zinc-800 ring-zinc-200' : 'bg-amber-50 text-amber-800 ring-amber-200'}`}>
               {entry.isPublished ? "Published" : "Draft"}
             </span>
           </div>
-          <p className="mt-3 line-clamp-2 text-sm font-medium text-[#756860]">
-            {entry.body || "No body copy."}
+          <p className="mt-3 line-clamp-2 text-sm font-normal text-zinc-600">
+            {entry.body || "No body text."}
           </p>
-          <p className="mt-3 text-xs font-bold text-[#756860]">ID: {entry.id}</p>
+          <p className="mt-4 text-[10px] font-medium text-zinc-400 font-mono">ID: {entry.id}</p>
         </article>
       ))}
     </div>
@@ -612,9 +629,9 @@ function CompactTable({
   rows: string[][];
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-zinc-100">
       <table className="w-full min-w-[420px] text-left text-sm">
-        <thead className="text-xs font-black uppercase tracking-[0.14em] text-[#756860]">
+        <thead className="bg-zinc-50 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
           <tr>
             {headers.map((header) => (
               <th className="table-head" key={header}>
@@ -625,9 +642,9 @@ function CompactTable({
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            <tr key={`${row[0]}-${rowIndex}`} className="border-t border-[#eadbc4]">
+            <tr key={`${row[0]}-${rowIndex}`} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/50 transition-colors">
               {row.map((cell, cellIndex) => (
-                <td className="table-cell" key={`${cell}-${cellIndex}`}>
+                <td className="table-cell text-zinc-700" key={`${cell}-${cellIndex}`}>
                   {cell}
                 </td>
               ))}

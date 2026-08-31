@@ -14,6 +14,8 @@ import {
   saveBlock,
   saveCmsEntry,
   updatePaymentStatus,
+  deleteCmsEntry,
+  deletePayment
 } from "@/lib/repository";
 import type { CmsEntry, PaymentProvider, PaymentStatus } from "@/lib/types";
 
@@ -199,4 +201,23 @@ export async function clearDemoDataAction() {
   const { clearDemoData } = await import("@/lib/repository");
   await clearDemoData();
   revalidatePath("/admin");
+}
+
+export async function deleteCmsAction(formData: FormData) {
+  await requireAdmin();
+  const id = text(formData, "id");
+  if (id) {
+    await deleteCmsEntry(id);
+    revalidatePath("/admin/events");
+    revalidatePath("/admin/content");
+  }
+}
+
+export async function deletePaymentAction(formData: FormData) {
+  await requireAdmin();
+  const id = text(formData, "id");
+  if (id) {
+    await deletePayment(id);
+    revalidatePath("/admin/payments");
+  }
 }

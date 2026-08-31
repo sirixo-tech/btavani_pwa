@@ -576,6 +576,26 @@ export async function createAuctionBid(
   return bid;
 }
 
+export async function deleteCmsEntry(id: string) {
+  if (!hasDatabase()) {
+    const index = memory.cmsEntries.findIndex((item) => item.id === id);
+    if (index >= 0) memory.cmsEntries.splice(index, 1);
+    return;
+  }
+  await query('delete from cms_entries where id = $1', [id]);
+  await clearMobileCache();
+}
+
+export async function deletePayment(id: string) {
+  if (!hasDatabase()) {
+    const index = memory.payments.findIndex((item) => item.id === id);
+    if (index >= 0) memory.payments.splice(index, 1);
+    return;
+  }
+  await query('delete from payments where id = $1', [id]);
+  await clearMobileCache();
+}
+
 export async function clearDemoData() {
   if (!hasDatabase()) {
     memory.cmsEntries = [];

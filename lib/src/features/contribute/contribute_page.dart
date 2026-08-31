@@ -524,7 +524,7 @@ class _DetailsStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const _StepTitle(
-            title: 'Your Details',
+            title: 'Enter Details',
             subtitle:
                 'Please provide your details for a smoother contribution experience.',
           ),

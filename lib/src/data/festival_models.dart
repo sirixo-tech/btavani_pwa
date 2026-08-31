@@ -9,6 +9,7 @@ class EventItem {
     required this.color,
     required this.description,
     this.imageAsset,
+    this.imageUrl,
   });
 
   final String title;
@@ -18,6 +19,32 @@ class EventItem {
   final Color color;
   final String description;
   final String? imageAsset;
+  final String? imageUrl;
+
+  factory EventItem.fromJson(Map<String, dynamic> json) {
+    Color parsedColor = const Color(0xFF6C1D45); // _maroon fallback
+    if (json['color'] != null) {
+      final colorStr = json['color'].toString();
+      if (colorStr.startsWith('#')) {
+        final hex = colorStr.replaceAll('#', '');
+        if (hex.length == 6) {
+          parsedColor = Color(int.parse('FF$hex', radix: 16));
+        } else if (hex.length == 8) {
+          parsedColor = Color(int.parse(hex, radix: 16));
+        }
+      }
+    }
+
+    return EventItem(
+      title: json['title'] as String? ?? 'Unknown Event',
+      date: json['startsAt'] as String? ?? '',
+      venue: json['venue'] as String? ?? '',
+      icon: Icons.event, // Default icon since API doesn't provide one
+      color: parsedColor,
+      description: json['body'] as String? ?? '',
+      imageUrl: json['imageUrl'] as String?,
+    );
+  }
 }
 
 class ScheduleItem {

@@ -12,6 +12,22 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final visibleAnnouncements = switch (filter) {
+      1 =>
+        announcements
+            .where((item) => item.label.toLowerCase() == 'notice')
+            .toList(),
+      2 =>
+        announcements
+            .where((item) => item.label.toLowerCase() == 'event')
+            .toList(),
+      3 =>
+        announcements
+            .where((item) => item.label.toLowerCase() == 'important')
+            .toList(),
+      _ => announcements,
+    };
+
     return DetailScaffold(
       title: 'Announcements',
       useScroll: false,
@@ -33,19 +49,53 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           ),
           const SizedBox(height: 14),
           Expanded(
-            child: ListView.separated(
-              itemCount: announcements.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) =>
-                  AnnouncementCard(item: announcements[index]),
-            ),
+            child: visibleAnnouncements.isEmpty
+                ? const AnnouncementsEmptyState()
+                : ListView.separated(
+                    itemCount: visibleAnnouncements.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) =>
+                        AnnouncementCard(item: visibleAnnouncements[index]),
+                  ),
           ),
           const SizedBox(height: 10),
           TextButton(
-            onPressed: () {},
+            onPressed: () => setState(() => filter = 0),
             child: const Text('View All Announcements'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class AnnouncementsEmptyState extends StatelessWidget {
+  const AnnouncementsEmptyState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: panelDecoration(),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.notifications_off_outlined, color: _maroon, size: 34),
+            SizedBox(height: 10),
+            Text(
+              'No announcements',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Updates for this category will appear here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: _muted, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
       ),
     );
   }

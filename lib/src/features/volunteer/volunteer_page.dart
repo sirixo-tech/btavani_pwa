@@ -57,7 +57,44 @@ class _VolunteerPageState extends State<VolunteerPage> {
           const SizedBox(height: 10),
           PrimaryButton(
             label: 'SUBMIT',
-            onPressed: () => _snack(context, 'Volunteer preferences saved'),
+            onPressed: () {
+              if (selected.isEmpty) {
+                _snack(context, 'Please select at least one volunteering area');
+                return;
+              }
+
+              showDialog<void>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text(
+                      'Volunteer Preferences Saved',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    content: Text(
+                      'Thank you for volunteering for ${selected.length} area${selected.length == 1 ? '' : 's'}.',
+                      style: const TextStyle(
+                        color: _muted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _maroon,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text(
+                          'OK',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

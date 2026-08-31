@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const HomeTopBar(),
+            HomeTopBar(onMenuTap: () => onTabSelected(3)),
             const SizedBox(height: 6),
             const BrandHeader(),
             const SizedBox(height: 14),
@@ -82,7 +82,9 @@ class HomePage extends StatelessWidget {
 }
 
 class HomeTopBar extends StatelessWidget {
-  const HomeTopBar({super.key});
+  const HomeTopBar({required this.onMenuTap, super.key});
+
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,7 @@ class HomeTopBar extends StatelessWidget {
       children: [
         IconButton(
           tooltip: 'Menu',
-          onPressed: () {},
+          onPressed: onMenuTap,
           icon: const Icon(Icons.menu),
         ),
         const Spacer(),

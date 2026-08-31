@@ -1,7 +1,9 @@
 part of '../../../main.dart';
 
 class EventsPage extends StatefulWidget {
-  const EventsPage({super.key});
+  const EventsPage({this.onTabSelected, super.key});
+
+  final ValueChanged<int>? onTabSelected;
 
   @override
   State<EventsPage> createState() => _EventsPageState();
@@ -9,9 +11,42 @@ class EventsPage extends StatefulWidget {
 
 class _EventsPageState extends State<EventsPage> {
   int filter = 0;
+  List<EventItem>? _events;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    try {
+      setState(() {
+        _error = null;
+        _events = null;
+      });
+      final events = await EventApiService().fetchEvents();
+      setState(() {
+        _events = events;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load events. Using fallback data.';
+        _events = fallbackEventItems;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final currentEvents = _events ?? fallbackEventItems;
+    final visibleEvents = switch (filter) {
+      1 => const <EventItem>[],
+      2 => currentEvents,
+      _ => currentEvents,
+    };
+
     return SafeArea(
       child: Column(
         children: [
@@ -19,12 +54,12 @@ class _EventsPageState extends State<EventsPage> {
             title: 'Events',
             leading: IconButton(
               tooltip: 'Menu',
-              onPressed: () {},
+              onPressed: () => widget.onTabSelected?.call(3),
               icon: const Icon(Icons.menu),
             ),
             trailing: IconButton(
               tooltip: 'Search',
-              onPressed: () {},
+              onPressed: () => _snack(context, 'Search ready for integration'),
               icon: const Icon(Icons.search),
             ),
           ),
@@ -37,20 +72,60 @@ class _EventsPageState extends State<EventsPage> {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-              itemCount: eventItems.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = eventItems[index];
-                return EventCard(
-                  item: item,
-                  onTap: () => _push(context, EventDetailsPage(item: item)),
-                );
-              },
-            ),
+            child: _events == null && _error == null
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF6C1D45)))
+                : visibleEvents.isEmpty
+                    ? const EventsEmptyState()
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                        itemCount: visibleEvents.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = visibleEvents[index];
+                          return EventCard(
+                            item: item,
+                            onTap: () =>
+                                _push(context, EventDetailsPage(item: item)),
+                          );
+                        },
+                      ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class EventsEmptyState extends StatelessWidget {
+  const EventsEmptyState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: panelDecoration(),
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.event_busy_outlined, color: _maroon, size: 34),
+              SizedBox(height: 10),
+              Text(
+                'No past events yet',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Completed events will appear here after the utsav.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: _muted, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -154,6 +229,11 @@ class EventDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return DetailScaffold(
       title: 'Event Details',
+      trailing: IconButton(
+        tooltip: 'Share',
+        onPressed: () => _snack(context, 'Share link ready for integration'),
+        icon: const Icon(Icons.share_outlined),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -207,7 +287,14 @@ class EventHero extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (item.imageAsset case final imageAsset?)
+            if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+              Image.network(
+                item.imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    EventHeroFallback(item: item),
+              )
+            else if (item.imageAsset case final imageAsset?)
               Image.asset(
                 imageAsset,
                 fit: BoxFit.cover,

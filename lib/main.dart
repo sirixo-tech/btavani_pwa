@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'src/core/confi/api_config.dart';
 
 part 'src/core/theme/app_colors.dart';
 part 'src/core/utils/ui_helpers.dart';
 part 'src/shared/styles/panel_decoration.dart';
 part 'src/data/festival_models.dart';
 part 'src/data/festival_data.dart';
+part 'src/data/event_api_service.dart';
 part 'src/app/tulasi_vanam_app.dart';
 part 'src/app/festival_shell.dart';
 part 'src/shared/widgets/app_frame.dart';

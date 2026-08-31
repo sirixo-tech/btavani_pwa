@@ -1,12 +1,37 @@
 part of '../../../main.dart';
 
-class AuctionPage extends StatelessWidget {
+class AuctionPage extends StatefulWidget {
   const AuctionPage({super.key});
+
+  @override
+  State<AuctionPage> createState() => _AuctionPageState();
+}
+
+class _AuctionPageState extends State<AuctionPage> {
+  int _highestBid = 11501;
+  String _highestBidder = 'I-1204';
+
+  Future<void> _placeBid() async {
+    final result = await showDialog<BidDetails>(
+      context: context,
+      builder: (context) => BidDialog(currentBid: _highestBid),
+    );
+
+    if (result == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _highestBid = result.amount;
+      _highestBidder = result.flatNumber;
+    });
+    _snack(context, 'Bid submitted successfully');
+  }
 
   @override
   Widget build(BuildContext context) {
     return DetailScaffold(
-      title: 'Laddoo Auction',
+      title: 'Laddoo Auction (Coming Soon)',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -48,17 +73,17 @@ class AuctionPage extends StatelessWidget {
                   'Current Highest Bid',
                   style: TextStyle(color: _muted, fontWeight: FontWeight.w700),
                 ),
-                const Text(
-                  'Rs 11,501',
-                  style: TextStyle(
+                Text(
+                  'Rs ${_formatBid(_highestBid)}',
+                  style: const TextStyle(
                     color: _maroon,
                     fontWeight: FontWeight.w900,
                     fontSize: 38,
                   ),
                 ),
-                const Text(
-                  'by I-1204',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                Text(
+                  'by $_highestBidder',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -68,11 +93,7 @@ class AuctionPage extends StatelessWidget {
                 const SizedBox(height: 6),
                 const TimerRow(),
                 const SizedBox(height: 24),
-                PrimaryButton(
-                  label: 'PLACE YOUR BID',
-                  onPressed: () =>
-                      _snack(context, 'Bidding flow ready for integration'),
-                ),
+                PrimaryButton(label: 'PLACE YOUR BID', onPressed: _placeBid),
               ],
             ),
           ),
@@ -80,6 +101,132 @@ class AuctionPage extends StatelessWidget {
           TextButton(onPressed: () {}, child: const Text('View All Bids')),
         ],
       ),
+    );
+  }
+
+  String _formatBid(int amount) {
+    final text = amount.toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < text.length; i++) {
+      final positionFromEnd = text.length - i;
+      buffer.write(text[i]);
+      if (positionFromEnd > 1 && positionFromEnd % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+    return buffer.toString();
+  }
+}
+
+class BidDetails {
+  const BidDetails({required this.amount, required this.flatNumber});
+
+  final int amount;
+  final String flatNumber;
+}
+
+class BidDialog extends StatefulWidget {
+  const BidDialog({required this.currentBid, super.key});
+
+  final int currentBid;
+
+  @override
+  State<BidDialog> createState() => _BidDialogState();
+}
+
+class _BidDialogState extends State<BidDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountController = TextEditingController();
+  final _flatController = TextEditingController();
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _flatController.dispose();
+    super.dispose();
+  }
+
+  void _submitBid() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    Navigator.pop(
+      context,
+      BidDetails(
+        amount: int.parse(_amountController.text.trim()),
+        flatNumber: _flatController.text.trim().toUpperCase(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text(
+        'Place Your Bid',
+        style: TextStyle(fontWeight: FontWeight.w900),
+      ),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Bid Amount',
+                prefixText: 'Rs ',
+                hintText: '${widget.currentBid + 500}',
+              ),
+              validator: (value) {
+                final amount = int.tryParse(value?.trim() ?? '');
+                if (amount == null || amount <= widget.currentBid) {
+                  return 'Enter more than Rs ${widget.currentBid}.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _flatController,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                labelText: 'Flat Number',
+                hintText: 'e.g. I-1204',
+              ),
+              validator: (value) {
+                if ((value ?? '').trim().isEmpty) {
+                  return 'Please enter your flat number.';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('CANCEL'),
+        ),
+        ElevatedButton(
+          onPressed: _submitBid,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _maroon,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text(
+            'SUBMIT BID',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ),
+      ],
     );
   }
 }

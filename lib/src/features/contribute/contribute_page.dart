@@ -12,215 +12,139 @@ class ContributePage extends StatefulWidget {
 class _ContributePageState extends State<ContributePage> {
   static const int minimumContributionAmount = 2000;
   static const int maximumContributionAmount = 99000;
+  static const List<String> _blocks = [
+    'Block A',
+    'Block B',
+    'Block C',
+    'Block D',
+    'Block E',
+    'Block F',
+    'Block G',
+  ];
+  static const Map<String, String> _upiIds = {
+    'Block A': 'avani.blocka@axl',
+    'Block B': 'avani.blockb@axl',
+    'Block C': 'avani.blockc@axl',
+    'Block D': 'avani.blockd@axl',
+    'Block E': 'avani.blocke@axl',
+    'Block F': 'avani.blockf@axl',
+    'Block G': 'avani.blockg@axl',
+  };
 
-  int selectedAmount = 0;
+  final _detailsFormKey = GlobalKey<FormState>();
+  final _addressFormKey = GlobalKey<FormState>();
+  final _customAmountController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _flatController = TextEditingController();
+  final _gotramController = TextEditingController();
 
-  final List<String> amounts = const [
-    '2,001',
-    '5,001',
-    '10,001',
-    '25,001',
-    '50,001',
-    'Other',
+  final List<ContributionAmountOption> amounts = const [
+    ContributionAmountOption(2001),
+    ContributionAmountOption(5001),
+    ContributionAmountOption(10001),
+    ContributionAmountOption(25001),
+    ContributionAmountOption(50001),
+    ContributionAmountOption(null),
   ];
 
-  // Your Razorpay Payment Page
-  static final Uri razorpayPaymentUrl = Uri.parse(
-    'https://pages.razorpay.com/BTAVANIganeshchanda',
-  );
+  int _currentStep = 0;
+  int _selectedAmountIndex = 0;
+  String _selectedBlock = _blocks.first;
+  bool _paymentMarkedComplete = false;
 
-  bool _openingPayment = false;
+  int? get _selectedAmount {
+    final preset = amounts[_selectedAmountIndex].amount;
+    if (preset != null) return preset;
 
-  Future<void> _proceedToPay() async {
-    if (_openingPayment) return;
-
-    setState(() {
-      _openingPayment = true;
-    });
-
-    try {
-      final selected = amounts[selectedAmount];
-
-      // If "Other" is selected, ask the user for the amount.
-      if (selected == 'Other') {
-        final amount = await _showCustomAmountDialog();
-
-        if (!mounted) return;
-
-        if (amount == null || amount.trim().isEmpty) {
-          return;
-        }
-
-        final parsed = double.tryParse(amount.replaceAll(',', '').trim());
-
-        if (parsed == null ||
-            parsed < minimumContributionAmount ||
-            parsed > maximumContributionAmount) {
-          _showSnack('Please enter an amount from Rs 2,000 to Rs 99,000.');
-          return;
-        }
-
-        await _openRazorpayPage(amount: parsed.toStringAsFixed(0));
-
-        return;
-      }
-
-      final amount = selected.replaceAll(',', '');
-
-      await _openRazorpayPage(amount: amount);
-    } catch (error) {
-      debugPrint('Payment error: $error');
-
-      if (mounted) {
-        _showSnack('Unable to open payment page. Please try again.');
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _openingPayment = false;
-        });
-      }
-    }
+    return int.tryParse(
+      _customAmountController.text.replaceAll(',', '').trim(),
+    );
   }
 
-  Uri _paymentUrlWithAmount(String amount) {
-    return razorpayPaymentUrl.replace(
+  String get _selectedUpiId => _upiIds[_selectedBlock] ?? _upiIds.values.first;
+
+  Uri get _upiUri {
+    final amount = _selectedAmount ?? amounts.first.amount!;
+
+    return Uri(
+      scheme: 'upi',
+      host: 'pay',
       queryParameters: {
-        ...razorpayPaymentUrl.queryParameters,
-        'amount': amount,
+        'pa': _selectedUpiId,
+        'pn': 'BT AVANI Ganesh Utsav Committee',
+        'am': amount.toString(),
+        'cu': 'INR',
+        'tn': 'Avani Ganesh Utsav 2026 - $_selectedBlock',
       },
     );
   }
 
-  Future<void> _openRazorpayPage({required String amount}) async {
-    final shouldContinue = await _showPaymentConfirmation(amount);
+  @override
+  void dispose() {
+    _customAmountController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _flatController.dispose();
+    _gotramController.dispose();
+    super.dispose();
+  }
 
-    if (!shouldContinue || !mounted) {
+  void _continue() {
+    FocusScope.of(context).unfocus();
+
+    if (!_validateStep(_currentStep)) return;
+
+    if (_currentStep == 5) {
+      setState(() => _paymentMarkedComplete = true);
+      _showSnack('Payment marked complete. Thank you for contributing.');
       return;
     }
 
-    final paymentUrl = _paymentUrlWithAmount(amount);
-    final canOpen = await canLaunchUrl(paymentUrl);
+    setState(() => _currentStep += 1);
+  }
 
-    if (!canOpen) {
-      if (mounted) {
-        _showSnack('Could not open Razorpay payment page.');
-      }
+  void _goBack() {
+    if (_currentStep > 0) {
+      setState(() => _currentStep -= 1);
       return;
     }
 
-    await launchUrl(paymentUrl, mode: LaunchMode.externalApplication);
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+
+    widget.onBackToHome?.call();
   }
 
-  Future<bool> _showPaymentConfirmation(String amount) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Confirm Contribution',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'You are about to contribute',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '₹$amount',
-                style: const TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w900,
-                  color: _maroon,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'The selected amount will be opened on Razorpay to complete the payment.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: _muted, fontSize: 13),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, false);
-              },
-              child: const Text('CANCEL'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _maroon,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text(
-                'CONTINUE',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    return result ?? false;
+  bool _validateStep(int step) {
+    switch (step) {
+      case 0:
+        final amount = _selectedAmount;
+        if (amount == null ||
+            amount < minimumContributionAmount ||
+            amount > maximumContributionAmount) {
+          _showSnack('Please enter an amount between Rs 2,000 and Rs 99,000.');
+          return false;
+        }
+        return true;
+      case 1:
+        return _detailsFormKey.currentState?.validate() ?? false;
+      case 2:
+        return _addressFormKey.currentState?.validate() ?? false;
+      default:
+        return true;
+    }
   }
 
-  Future<String?> _showCustomAmountDialog() async {
-    final controller = TextEditingController();
-
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Enter Amount',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: false),
-            decoration: InputDecoration(
-              prefixText: '₹ ',
-              hintText: 'Enter amount',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('CANCEL'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, controller.text.trim());
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _maroon,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('CONTINUE'),
-            ),
-          ],
-        );
-      },
-    );
-
-    controller.dispose();
-
-    return result;
+  void _editStep(int step) {
+    setState(() {
+      _currentStep = step;
+      _paymentMarkedComplete = false;
+    });
   }
 
   void _showSnack(String message) {
@@ -231,11 +155,47 @@ class _ContributePageState extends State<ContributePage> {
     );
   }
 
+  String _requiredValidator(String? value, String field) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter $field.';
+    }
+    return '';
+  }
+
+  String? _validateRequired(String? value, String field) {
+    final message = _requiredValidator(value, field);
+    return message.isEmpty ? null : message;
+  }
+
+  String? _validateEmail(String? value) {
+    final requiredMessage = _requiredValidator(value, 'email');
+    if (requiredMessage.isNotEmpty) return requiredMessage;
+
+    final text = value!.trim();
+    if (!text.contains('@') || !text.contains('.')) {
+      return 'Please enter a valid email.';
+    }
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final requiredMessage = _requiredValidator(value, 'phone number');
+    if (requiredMessage.isNotEmpty) return requiredMessage;
+
+    final digits = value!.replaceAll(RegExp(r'\D'), '');
+    if (digits.length != 10) {
+      return 'Please enter a 10 digit phone number.';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final amount = _selectedAmount ?? amounts.first.amount!;
+
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 104),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -244,154 +204,41 @@ class _ContributePageState extends State<ContributePage> {
               compact: true,
               leading: IconButton(
                 tooltip: 'Back',
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                    return;
-                  }
-
-                  widget.onBackToHome?.call();
-                },
+                onPressed: _goBack,
                 icon: const Icon(Icons.arrow_back_ios_new, size: 18),
               ),
-              trailing: IconButton(
-                tooltip: 'History',
-                onPressed: () {},
-                icon: const Icon(Icons.history),
-              ),
+              trailing: const SizedBox(width: 48),
             ),
-
             const SizedBox(height: 8),
-
-            const FestivalArtCard(),
-
-            const SizedBox(height: 18),
-
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: panelDecoration(
-                color: _paper.withValues(alpha: 0.94),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Support Avani Ganesh Utsav 2026',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+            Image.asset(
+              'assets/images/btavani.png',
+              height: 52,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Text(
+                  'BT AVANI',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _gold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
                   ),
-                  SizedBox(height: 5),
-                  Text(
-                    'Your contribution makes this celebration special',
-                    style: TextStyle(
-                      color: _muted,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            const Text(
-              'Choose an amount',
-              style: TextStyle(fontWeight: FontWeight.w900),
-            ),
-
-            const SizedBox(height: 10),
-
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 1.55,
-              ),
-              itemCount: amounts.length,
-              itemBuilder: (context, index) {
-                final selected = selectedAmount == index;
-
-                final label = amounts[index] == 'Other'
-                    ? 'Other'
-                    : 'Rs ${amounts[index]}';
-
-                return AmountButton(
-                  label: label,
-                  selected: selected,
-                  onTap: () {
-                    setState(() {
-                      selectedAmount = index;
-                    });
-                  },
                 );
               },
             ),
-
-            const SizedBox(height: 16),
-
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [_goldLight.withValues(alpha: 0.62), _surfaceWarm],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(color: _gold.withValues(alpha: 0.22)),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Text(
-                'Every contribution, big or small,\n'
-                'makes a big difference.\n'
-                'Thank you!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // PAYMENT BUTTON
-            SizedBox(
-              height: 54,
-              child: ElevatedButton(
-                onPressed: _openingPayment ? null : _proceedToPay,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _maroon,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: _maroon.withValues(alpha: 0.5),
-                  disabledForegroundColor: Colors.white70,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: _openingPayment
-                    ? const SizedBox(
-                        width: 23,
-                        height: 23,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'PROCEED TO PAY',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
+            const SizedBox(height: 14),
             const Text(
-              'Secure payment powered by Razorpay',
+              'Contribute to Avani Ganesh Utsav 2026',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _ink,
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 5),
+            const Text(
+              'Your contribution makes this celebration special!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: _muted,
@@ -399,10 +246,100 @@ class _ContributePageState extends State<ContributePage> {
                 fontSize: 12,
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            const PaymentBadges(),
+            const SizedBox(height: 18),
+            ContributionStepper(currentStep: _currentStep),
+            const SizedBox(height: 22),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              child: KeyedSubtree(
+                key: ValueKey(_currentStep),
+                child: switch (_currentStep) {
+                  0 => _AmountStep(
+                    amounts: amounts,
+                    selectedAmountIndex: _selectedAmountIndex,
+                    customAmountController: _customAmountController,
+                    onSelected: (index) {
+                      setState(() => _selectedAmountIndex = index);
+                    },
+                  ),
+                  1 => _DetailsStep(
+                    formKey: _detailsFormKey,
+                    nameController: _nameController,
+                    emailController: _emailController,
+                    phoneController: _phoneController,
+                    validateRequired: _validateRequired,
+                    validateEmail: _validateEmail,
+                    validatePhone: _validatePhone,
+                  ),
+                  2 => _AddressStep(
+                    formKey: _addressFormKey,
+                    blocks: _blocks,
+                    selectedBlock: _selectedBlock,
+                    flatController: _flatController,
+                    gotramController: _gotramController,
+                    onBlockChanged: (block) {
+                      setState(() => _selectedBlock = block);
+                    },
+                    validateRequired: _validateRequired,
+                  ),
+                  3 => _BlockStep(
+                    blocks: _blocks,
+                    selectedBlock: _selectedBlock,
+                    onSelected: (block) {
+                      setState(() => _selectedBlock = block);
+                    },
+                  ),
+                  4 => _ReviewStep(
+                    amount: amount,
+                    name: _nameController.text,
+                    email: _emailController.text,
+                    phone: _phoneController.text,
+                    block: _selectedBlock,
+                    flatNumber: _flatController.text,
+                    gotram: _gotramController.text,
+                    onEdit: _editStep,
+                  ),
+                  _ => _PaymentStep(
+                    amount: amount,
+                    block: _selectedBlock,
+                    upiId: _selectedUpiId,
+                    upiPayload: _upiUri.toString(),
+                    paymentMarkedComplete: _paymentMarkedComplete,
+                  ),
+                },
+              ),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              height: 54,
+              child: ElevatedButton(
+                onPressed: _continue,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _maroon,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                ),
+                child: Text(
+                  switch (_currentStep) {
+                    4 => 'PROCEED TO PAYMENT',
+                    5 =>
+                      _paymentMarkedComplete
+                          ? 'PAYMENT COMPLETED'
+                          : 'I HAVE COMPLETED THE PAYMENT',
+                    _ => 'CONTINUE',
+                  },
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -410,146 +347,822 @@ class _ContributePageState extends State<ContributePage> {
   }
 }
 
-class FestivalArtCard extends StatelessWidget {
-  const FestivalArtCard({super.key});
+class ContributionAmountOption {
+  const ContributionAmountOption(this.amount);
+
+  final int? amount;
+
+  String get label {
+    if (amount == null) return 'Other';
+    return '₹${formatIndianNumber(amount!)}';
+  }
+}
+
+class ContributionStepper extends StatelessWidget {
+  const ContributionStepper({required this.currentStep, super.key});
+
+  final int currentStep;
+
+  static const _labels = [
+    'Amount',
+    'Details',
+    'Address',
+    'Block',
+    'Review',
+    'Payment',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        height: 126,
-        decoration: BoxDecoration(
-          color: _surfaceWarm,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: _gold.withValues(alpha: 0.16),
-              blurRadius: 22,
-              offset: const Offset(0, 10),
+    return Row(
+      children: [
+        for (var index = 0; index < _labels.length; index++) ...[
+          Expanded(
+            child: Column(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: index <= currentStep ? _maroon : _line,
+                    shape: BoxShape.circle,
+                  ),
+                  child: index < currentStep
+                      ? const Icon(Icons.check, color: Colors.white, size: 15)
+                      : Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color: index <= currentStep ? Colors.white : _muted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _labels[index],
+                    style: const TextStyle(
+                      color: _muted,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          if (index != _labels.length - 1)
+            Container(
+              width: 10,
+              height: 1.4,
+              margin: const EdgeInsets.only(bottom: 21),
+              color: index < currentStep ? _maroon : _line,
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AmountStep extends StatelessWidget {
+  const _AmountStep({
+    required this.amounts,
+    required this.selectedAmountIndex,
+    required this.customAmountController,
+    required this.onSelected,
+  });
+
+  final List<ContributionAmountOption> amounts;
+  final int selectedAmountIndex;
+  final TextEditingController customAmountController;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final otherSelected = amounts[selectedAmountIndex].amount == null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _StepTitle(
+          title: 'Choose Contribution Amount',
+          subtitle:
+              'Please enter your contribution amount between ₹2,000 and ₹99,000.',
         ),
-        child: Image.asset(
-          'assets/images/ganesha_contribute.jpg',
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) =>
-              CustomPaint(painter: FestivalArtPainter()),
+        const SizedBox(height: 22),
+        const Text(
+          'Select Amount',
+          style: TextStyle(color: _ink, fontWeight: FontWeight.w900),
         ),
+        const SizedBox(height: 10),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 1.72,
+          ),
+          itemCount: amounts.length,
+          itemBuilder: (context, index) {
+            return AmountButton(
+              label: amounts[index].label,
+              selected: selectedAmountIndex == index,
+              onTap: () => onSelected(index),
+            );
+          },
+        ),
+        if (otherSelected) ...[
+          const SizedBox(height: 14),
+          ContributionTextField(
+            label: 'Other Amount *',
+            hint: 'Enter amount',
+            controller: customAmountController,
+            keyboardType: TextInputType.number,
+            prefixText: '₹ ',
+          ),
+        ],
+        const SizedBox(height: 18),
+        const ContributionNotice(
+          icon: Icons.shield_outlined,
+          text:
+              'Every contribution, big or small, makes a big difference.\nThank you.',
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailsStep extends StatelessWidget {
+  const _DetailsStep({
+    required this.formKey,
+    required this.nameController,
+    required this.emailController,
+    required this.phoneController,
+    required this.validateRequired,
+    required this.validateEmail,
+    required this.validatePhone,
+  });
+
+  final GlobalKey<FormState> formKey;
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController phoneController;
+  final String? Function(String?, String) validateRequired;
+  final String? Function(String?) validateEmail;
+  final String? Function(String?) validatePhone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _StepTitle(
+            title: 'Your Details',
+            subtitle:
+                'Please provide your details for a smoother contribution experience.',
+          ),
+          const SizedBox(height: 22),
+          ContributionTextField(
+            label: 'Resident / Devotee Full Name *',
+            hint: 'Enter Full Name',
+            icon: Icons.person_outline,
+            controller: nameController,
+            validator: (value) => validateRequired(value, 'full name'),
+          ),
+          ContributionTextField(
+            label: 'Email *',
+            hint: 'Enter Email',
+            icon: Icons.mail_outline,
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+            validator: validateEmail,
+          ),
+          ContributionTextField(
+            label: 'Phone Number *',
+            hint: 'Enter Phone Number',
+            icon: Icons.phone_outlined,
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
+            prefixText: '+91 ',
+            validator: validatePhone,
+          ),
+        ],
       ),
     );
   }
 }
 
-class FestivalArtPainter extends CustomPainter {
+class _AddressStep extends StatelessWidget {
+  const _AddressStep({
+    required this.formKey,
+    required this.blocks,
+    required this.selectedBlock,
+    required this.flatController,
+    required this.gotramController,
+    required this.onBlockChanged,
+    required this.validateRequired,
+  });
+
+  final GlobalKey<FormState> formKey;
+  final List<String> blocks;
+  final String selectedBlock;
+  final TextEditingController flatController;
+  final TextEditingController gotramController;
+  final ValueChanged<String> onBlockChanged;
+  final String? Function(String?, String) validateRequired;
+
   @override
-  void paint(Canvas canvas, Size size) {
-    final maroonPaint = Paint()..color = _maroon;
-
-    final goldPaint = Paint()..color = _gold;
-
-    final leafPaint = Paint()..color = _leaf;
-
-    for (final x in [size.width * 0.12, size.width * 0.88]) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height * 0.72),
-        Paint()
-          ..color = const Color(0xFFB77518)
-          ..strokeWidth = 2,
-      );
-
-      for (var i = 0; i < 4; i++) {
-        canvas.drawCircle(Offset(x, 18 + i * 18), 4, goldPaint);
-      }
-
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(x, size.height * 0.82),
-          width: 22,
-          height: 9,
-        ),
-        goldPaint,
-      );
-
-      canvas.drawPath(
-        Path()
-          ..moveTo(x, size.height * 0.58)
-          ..lineTo(x - 7, size.height * 0.72)
-          ..lineTo(x + 7, size.height * 0.72)
-          ..close(),
-        maroonPaint,
-      );
-    }
-
-    final center = Offset(size.width / 2, size.height * 0.55);
-
-    canvas.drawCircle(center, 34, Paint()..color = const Color(0xFFFFDB7B));
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center + const Offset(0, 5),
-        width: 44,
-        height: 56,
+  Widget build(BuildContext context) {
+    return Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _StepTitle(
+            title: 'Address Details',
+            subtitle: 'Please provide your address details.',
+          ),
+          const SizedBox(height: 22),
+          const _FieldLabel('Block *'),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            initialValue: selectedBlock,
+            items: [
+              for (final block in blocks)
+                DropdownMenuItem(value: block, child: Text(block)),
+            ],
+            onChanged: (value) {
+              if (value != null) onBlockChanged(value);
+            },
+            decoration: contributionInputDecoration(hint: 'Select Block'),
+          ),
+          const SizedBox(height: 16),
+          ContributionTextField(
+            label: 'Flat Number *',
+            hint: 'Enter Flat Number',
+            icon: Icons.apartment_outlined,
+            controller: flatController,
+            textCapitalization: TextCapitalization.characters,
+            validator: (value) => validateRequired(value, 'flat number'),
+          ),
+          ContributionTextField(
+            label: 'Gotram (Optional)',
+            hint: 'Enter Gotram',
+            icon: Icons.temple_hindu_outlined,
+            controller: gotramController,
+            textCapitalization: TextCapitalization.words,
+          ),
+        ],
       ),
-      goldPaint,
     );
-
-    canvas.drawCircle(center + const Offset(0, -30), 17, maroonPaint);
-
-    canvas.drawCircle(
-      center + const Offset(0, -15),
-      25,
-      Paint()..color = const Color(0xFFFFBE55),
-    );
-
-    canvas.drawCircle(center + const Offset(-9, -18), 2.4, maroonPaint);
-
-    canvas.drawCircle(center + const Offset(9, -18), 2.4, maroonPaint);
-
-    canvas.drawPath(
-      Path()
-        ..moveTo(center.dx, center.dy - 10)
-        ..quadraticBezierTo(
-          center.dx + 20,
-          center.dy + 4,
-          center.dx + 10,
-          center.dy + 22,
-        ),
-      Paint()
-        ..color = maroonPaint.color
-        ..strokeWidth = 4
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round,
-    );
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center + const Offset(-31, -10),
-        width: 22,
-        height: 42,
-      ),
-      goldPaint,
-    );
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center + const Offset(31, -10),
-        width: 22,
-        height: 42,
-      ),
-      goldPaint,
-    );
-
-    canvas.drawCircle(center + const Offset(-34, -16), 7, leafPaint);
-
-    canvas.drawCircle(center + const Offset(34, -16), 7, leafPaint);
   }
+}
+
+class _BlockStep extends StatelessWidget {
+  const _BlockStep({
+    required this.blocks,
+    required this.selectedBlock,
+    required this.onSelected,
+  });
+
+  final List<String> blocks;
+  final String selectedBlock;
+  final ValueChanged<String> onSelected;
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _StepTitle(
+          title: 'Select Your Block',
+          subtitle: 'Please select your residential block.',
+        ),
+        const SizedBox(height: 22),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 2.65,
+          ),
+          itemCount: blocks.length,
+          itemBuilder: (context, index) {
+            final block = blocks[index];
+            final selected = block == selectedBlock;
+            return BlockButton(
+              label: block,
+              selected: selected,
+              onTap: () => onSelected(block),
+            );
+          },
+        ),
+        const SizedBox(height: 22),
+        const ContributionNotice(
+          icon: Icons.shield_outlined,
+          text:
+              'Your contribution will be sent to your respective Block Organizer.',
+        ),
+      ],
+    );
+  }
+}
+
+class _ReviewStep extends StatelessWidget {
+  const _ReviewStep({
+    required this.amount,
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.block,
+    required this.flatNumber,
+    required this.gotram,
+    required this.onEdit,
+  });
+
+  final int amount;
+  final String name;
+  final String email;
+  final String phone;
+  final String block;
+  final String flatNumber;
+  final String gotram;
+  final ValueChanged<int> onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = [
+      ReviewRowData(
+        icon: Icons.currency_rupee,
+        label: 'Amount',
+        value: '₹${formatIndianNumber(amount)}',
+        step: 0,
+      ),
+      ReviewRowData(
+        icon: Icons.person_outline,
+        label: 'Name',
+        value: name,
+        step: 1,
+      ),
+      ReviewRowData(
+        icon: Icons.mail_outline,
+        label: 'Email',
+        value: email,
+        step: 1,
+      ),
+      ReviewRowData(
+        icon: Icons.phone_outlined,
+        label: 'Phone',
+        value: '+91 $phone',
+        step: 1,
+      ),
+      ReviewRowData(
+        icon: Icons.apartment_outlined,
+        label: 'Block',
+        value: block,
+        step: 3,
+      ),
+      ReviewRowData(
+        icon: Icons.meeting_room_outlined,
+        label: 'Flat Number',
+        value: flatNumber.toUpperCase(),
+        step: 2,
+      ),
+      ReviewRowData(
+        icon: Icons.temple_hindu_outlined,
+        label: 'Gotram',
+        value: gotram.trim().isEmpty ? 'Not provided' : gotram,
+        step: 2,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _StepTitle(
+          title: 'Review & Confirm',
+          subtitle: 'Please review your details before proceeding to payment.',
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: panelDecoration(radius: 7, elevated: false),
+          child: Column(
+            children: [
+              for (var index = 0; index < rows.length; index++) ...[
+                ReviewRow(data: rows[index], onEdit: onEdit),
+                if (index != rows.length - 1)
+                  Divider(height: 1, color: _line.withValues(alpha: 0.75)),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentStep extends StatelessWidget {
+  const _PaymentStep({
+    required this.amount,
+    required this.block,
+    required this.upiId,
+    required this.upiPayload,
+    required this.paymentMarkedComplete,
+  });
+
+  final int amount;
+  final String block;
+  final String upiId;
+  final String upiPayload;
+  final bool paymentMarkedComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [_maroon, _maroonDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.13),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.apartment_outlined,
+                  color: Colors.white,
+                  size: 34,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'You are contributing to',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      block,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '₹${formatIndianNumber(amount)}',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+          decoration: panelDecoration(radius: 7, elevated: false),
+          child: Column(
+            children: [
+              const Text(
+                'Scan & Pay using any UPI App',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _ink,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 3),
+              const Text(
+                '(Google Pay / PhonePe / Paytm / any UPI)',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _muted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(10),
+                color: Colors.white,
+                child: QrImageView(
+                  data: upiPayload,
+                  version: QrVersions.auto,
+                  size: 220,
+                  gapless: false,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Colors.black,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'UPI ID: $upiId',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: _ink,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const ContributionNotice(
+          icon: Icons.shield_outlined,
+          text:
+              'This QR code is for the selected block only. Please scan & complete your payment.',
+        ),
+        if (paymentMarkedComplete) ...[
+          const SizedBox(height: 12),
+          const ContributionNotice(
+            icon: Icons.check_circle_outline,
+            text:
+                'Thank you. Your payment completion has been noted on this device.',
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _StepTitle extends StatelessWidget {
+  const _StepTitle({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: _ink,
+            fontSize: 21,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            color: _muted,
+            fontSize: 13,
+            height: 1.35,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        color: _ink,
+        fontSize: 13,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+  }
+}
+
+InputDecoration contributionInputDecoration({
+  required String hint,
+  IconData? icon,
+  String? prefixText,
+}) {
+  return InputDecoration(
+    hintText: hint,
+    prefixText: prefixText,
+    prefixIcon: icon == null ? null : Icon(icon, color: _maroon, size: 19),
+    filled: true,
+    fillColor: _paper,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(7),
+      borderSide: const BorderSide(color: _line),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(7),
+      borderSide: BorderSide(color: _line.withValues(alpha: 0.9)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(7),
+      borderSide: const BorderSide(color: _maroon, width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(7),
+      borderSide: const BorderSide(color: _maroon, width: 1.2),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(7),
+      borderSide: const BorderSide(color: _maroon, width: 1.5),
+    ),
+  );
+}
+
+class ContributionTextField extends StatelessWidget {
+  const ContributionTextField({
+    required this.label,
+    required this.hint,
+    required this.controller,
+    this.icon,
+    this.prefixText,
+    this.keyboardType,
+    this.textCapitalization = TextCapitalization.none,
+    this.validator,
+    super.key,
+  });
+
+  final String label;
+  final String hint;
+  final TextEditingController controller;
+  final IconData? icon;
+  final String? prefixText;
+  final TextInputType? keyboardType;
+  final TextCapitalization textCapitalization;
+  final String? Function(String?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _FieldLabel(label),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            textCapitalization: textCapitalization,
+            validator: validator,
+            decoration: contributionInputDecoration(
+              hint: hint,
+              icon: icon,
+              prefixText: prefixText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ContributionNotice extends StatelessWidget {
+  const ContributionNotice({required this.icon, required this.text, super.key});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [_goldLight.withValues(alpha: 0.34), _surfaceWarm],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: _gold.withValues(alpha: 0.24)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: _gold, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: _maroonDark,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ReviewRowData {
+  const ReviewRowData({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.step,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final int step;
+}
+
+class ReviewRow extends StatelessWidget {
+  const ReviewRow({required this.data, required this.onEdit, super.key});
+
+  final ReviewRowData data;
+  final ValueChanged<int> onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          Icon(data.icon, color: _maroon, size: 19),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.label,
+                  style: const TextStyle(
+                    color: _muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  data.value,
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Edit ${data.label}',
+            onPressed: () => onEdit(data.step),
+            icon: const Icon(Icons.edit_outlined, color: _ink, size: 19),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -569,9 +1182,9 @@ class AmountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(7),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(7),
         onTap: onTap,
         child: Ink(
           decoration: BoxDecoration(
@@ -586,7 +1199,7 @@ class AmountButton extends StatelessWidget {
             border: Border.all(
               color: selected ? _maroon : _line.withValues(alpha: 0.9),
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(7),
             boxShadow: selected
                 ? [
                     BoxShadow(
@@ -616,82 +1229,79 @@ class AmountButton extends StatelessWidget {
   }
 }
 
-class PaymentBadges extends StatelessWidget {
-  const PaymentBadges({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: const [
-        Expanded(
-          child: PaymentLogoBadge(
-            label: 'Google Pay',
-            assetPath: 'assets/images/payment/google_pay.png',
-          ),
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: PaymentLogoBadge(
-            label: 'PhonePe',
-            assetPath: 'assets/images/payment/phonepe.png',
-          ),
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: PaymentLogoBadge(
-            label: 'Paytm',
-            assetPath: 'assets/images/payment/paytm.jpg',
-          ),
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: PaymentLogoBadge(
-            label: 'BHIM',
-            assetPath: 'assets/images/payment/bhim.png',
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class PaymentLogoBadge extends StatelessWidget {
-  const PaymentLogoBadge({
+class BlockButton extends StatelessWidget {
+  const BlockButton({
     required this.label,
-    required this.assetPath,
+    required this.selected,
+    required this.onTap,
     super.key,
   });
 
   final String label;
-  final String assetPath;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: label,
-      image: true,
-      child: Container(
-        height: 42,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-        alignment: Alignment.center,
-        decoration: panelDecoration(radius: 14, elevated: false),
-        child: Image.asset(
-          assetPath,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: _maroonDark,
-                  fontWeight: FontWeight.w900,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(7),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(7),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            gradient: selected
+                ? const LinearGradient(
+                    colors: [_maroon, _maroonDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: selected ? null : _paper,
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(
+              color: selected ? _maroon : _line.withValues(alpha: 0.9),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.apartment_outlined,
+                color: selected ? Colors.white : _maroon,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? Colors.white : _ink,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+String formatIndianNumber(int value) {
+  final text = value.toString();
+  if (text.length <= 3) return text;
+
+  final lastThree = text.substring(text.length - 3);
+  final leading = text.substring(0, text.length - 3);
+  final parts = <String>[];
+
+  for (var end = leading.length; end > 0; end -= 2) {
+    final start = end - 2 < 0 ? 0 : end - 2;
+    parts.insert(0, leading.substring(start, end));
+  }
+
+  return '${parts.join(',')},$lastThree';
 }

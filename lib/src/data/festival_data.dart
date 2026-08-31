@@ -1,6 +1,6 @@
 part of '../../main.dart';
 
-const eventItems = [
+const fallbackEventItems = [
   EventItem(
     title: 'Grand Cultural Evening',
     date: '19 Sept 2026 | 7:00 PM onwards',

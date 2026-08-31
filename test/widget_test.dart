@@ -112,26 +112,55 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Rs 11,501'), findsOneWidget);
     await tester.tap(find.text('PLACE YOUR BID'));
-    await tester.pump();
-    expect(find.text('Bidding flow ready for integration'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('Place Your Bid'), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField).at(0), '12001');
+    await tester.enterText(find.byType(TextFormField).at(1), 'i-1302');
+    await tester.tap(find.text('SUBMIT BID'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rs 12,001'), findsOneWidget);
+    expect(find.text('by I-1302'), findsOneWidget);
     await _goBack(tester);
     await tester.pump(const Duration(seconds: 4));
 
     await tester.tap(find.text('Contribute').last);
     await tester.pumpAndSettle();
-    expect(find.text('Support Avani Ganesh Utsav 2026'), findsOneWidget);
+    expect(find.text('Contribute to Avani Ganesh Utsav 2026'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
     await tester.pumpAndSettle();
     expect(find.text('Quick Access'), findsOneWidget);
 
     await tester.tap(find.text('Contribute').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Rs 5,001'));
+    await tester.tap(find.text('₹5,001'));
     await tester.pump();
-    await tester.tap(find.text('PROCEED TO PAY'));
+    await _tapVisibleText(tester, 'CONTINUE');
+    expect(find.text('Your Details'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).at(0), 'Ramesh Kumar');
+    await tester.enterText(
+      find.byType(TextFormField).at(1),
+      'ramesh.kumar@email.com',
+    );
+    await tester.enterText(find.byType(TextFormField).at(2), '9876543210');
+    await _tapVisibleText(tester, 'CONTINUE');
+    expect(find.text('Address Details'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).at(0), 'A-1203');
+    await tester.enterText(find.byType(TextFormField).at(1), 'Kashyap');
+    await _tapVisibleText(tester, 'CONTINUE');
+    expect(find.text('Select Your Block'), findsOneWidget);
+
+    await tester.tap(find.text('Block B'));
     await tester.pump();
-    expect(find.text('Confirm Contribution'), findsOneWidget);
-    expect(find.text('₹5001'), findsOneWidget);
+    await _tapVisibleText(tester, 'CONTINUE');
+    expect(find.text('Review & Confirm'), findsOneWidget);
+    expect(find.text('₹5,001'), findsOneWidget);
+    expect(find.text('Block B'), findsOneWidget);
+
+    await _tapVisibleText(tester, 'PROCEED TO PAYMENT');
+    expect(find.text('Scan & Pay using any UPI App'), findsOneWidget);
+    expect(find.text('UPI ID: avani.blockb@axl'), findsOneWidget);
   });
 }
 
@@ -145,5 +174,13 @@ Future<void> _pumpFestivalApp(WidgetTester tester) async {
 
 Future<void> _goBack(WidgetTester tester) async {
   await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapVisibleText(WidgetTester tester, String text) async {
+  final finder = find.text(text);
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
   await tester.pumpAndSettle();
 }

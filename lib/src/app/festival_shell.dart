@@ -18,7 +18,7 @@ class _FestivalShellState extends State<FestivalShell> {
   Widget build(BuildContext context) {
     final pages = [
       HomePage(onTabSelected: _selectTab),
-      const EventsPage(),
+      EventsPage(onTabSelected: _selectTab),
       ContributePage(onBackToHome: () => _selectTab(0)),
       MorePage(onTabSelected: _selectTab),
     ];

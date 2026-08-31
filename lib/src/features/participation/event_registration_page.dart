@@ -42,7 +42,7 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
 
   String? get _initialSelectedEvent {
     final initialEvent = widget.initialEvent;
-    return eventItems.any((event) => event.title == initialEvent)
+    return fallbackEventItems.any((event) => event.title == initialEvent)
         ? initialEvent
         : null;
   }
@@ -120,7 +120,7 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
                     label: 'Select Event',
                     value: _selectedEvent,
                     hint: 'Select event',
-                    items: eventItems.map((event) => event.title).toList(),
+                    items: fallbackEventItems.map((event) => event.title).toList(),
                     validator: (value) =>
                         value == null ? 'Please select an event.' : null,
                     onChanged: (value) {

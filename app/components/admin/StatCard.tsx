@@ -1,3 +1,5 @@
+import type { ComponentType, SVGProps } from "react";
+
 export function StatCard({
   title,
   value,
@@ -7,7 +9,7 @@ export function StatCard({
   title: string;
   value: string;
   trend?: string;
-  icon?: any;
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
 }) {
   return (
     <div className="overflow-hidden rounded-xl bg-white px-4 py-5 shadow-sm border border-zinc-200 sm:p-6">

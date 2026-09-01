@@ -2,7 +2,6 @@ import { getDashboardData } from "@/lib/repository";
 import { StatCard } from "@/app/components/admin/StatCard";
 import {
   UsersIcon,
-  CalendarIcon,
   BanknotesIcon,
   CheckBadgeIcon
 } from "@heroicons/react/24/outline";
@@ -14,7 +13,6 @@ function money(value: number) {
 export default async function AdminDashboardPage() {
   const data = await getDashboardData();
   const events = data.cmsEntries.filter((entry) => entry.section === "event");
-  const leadingBid = data.bids[0];
 
   return (
     <>

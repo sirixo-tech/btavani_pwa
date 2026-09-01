@@ -34,6 +34,7 @@ export default async function ContentPage() {
                   {sectionEntries.map((entry) => (
                     <div key={entry.id} className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-zinc-200">
                       {entry.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={entry.imageUrl} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">

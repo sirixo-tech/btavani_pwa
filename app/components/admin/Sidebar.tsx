@@ -7,7 +7,6 @@ import {
   UsersIcon,
   CalendarIcon,
   DocumentTextIcon,
-  PhotoIcon,
   CreditCardIcon,
   Cog6ToothIcon,
   Bars3Icon,

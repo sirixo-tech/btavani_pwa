@@ -49,6 +49,7 @@ export default async function EventsPage() {
                 </div>
                 <div className="px-4 py-5 sm:p-6 flex flex-col md:flex-row gap-6">
                   {event.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={event.imageUrl} alt={event.title} className="w-full md:w-48 h-32 object-cover rounded-lg" />
                   )}
                   <div className="flex-1 text-sm text-zinc-700">

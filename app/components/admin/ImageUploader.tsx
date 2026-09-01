@@ -45,6 +45,7 @@ export function ImageUploader({
         <div className="text-center pointer-events-none">
           {preview ? (
             <div className="mx-auto flex flex-col items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={preview} alt="Preview" className="h-40 w-auto rounded-md object-contain shadow-sm mb-4" />
               <div className="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300">
                 Replace image

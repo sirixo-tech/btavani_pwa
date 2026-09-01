@@ -14,16 +14,16 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: any = {};
+  let body: Record<string, unknown> = {};
   if (request.headers.get("content-type")?.includes("multipart/form-data")) {
     const formData = await request.formData();
     for (const [key, value] of formData.entries()) {
-      if (key === 'screenshot' && value instanceof File) {
+      if (key === "screenshot" && value instanceof File) {
         const buffer = await value.arrayBuffer();
         const base64 = Buffer.from(buffer).toString("base64");
         body.screenshotUrl = `data:${value.type};base64,${base64}`;
       } else {
-        body[key] = value;
+        body[key] = value instanceof File ? value.name : value;
       }
     }
   } else {

@@ -12,6 +12,7 @@ class _GalleryPageState extends State<GalleryPage> {
   int _selectedPhoto = 0;
   List<GalleryPhoto>? _gallery;
   String? _error;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -65,13 +66,64 @@ class _GalleryPageState extends State<GalleryPage> {
     );
   }
 
-  void _handleUploadPressed(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Photo picker ready for integration'),
-        duration: Duration(seconds: 2),
-      ),
+  Future<void> _handleUploadPressed(BuildContext context) async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
     );
+    if (file == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      final bytes = await file.readAsBytes();
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.baseUrl}/api/mobile/gallery'),
+      );
+      
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          bytes,
+          filename: file.name,
+        ),
+      );
+
+      final response = await request.send();
+
+      if (!mounted) return;
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image uploaded! Pending admin approval.'),
+            backgroundColor: Color(0xFF4CAF50), // Fallback green or just remove _green
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        throw Exception('Failed to upload');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to upload image. Please try again.'),
+            backgroundColor: Color(0xFFF44336), // Fallback red
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -122,8 +174,8 @@ class _GalleryPageState extends State<GalleryPage> {
               GalleryControlWidth(
                 width: metrics.buttonWidth,
                 child: PrimaryButton(
-                  label: 'UPLOAD PHOTO',
-                  onPressed: () => _handleUploadPressed(context),
+                  label: _isUploading ? 'UPLOADING...' : 'UPLOAD PHOTO',
+                  onPressed: _isUploading ? null : () => _handleUploadPressed(context),
                 ),
               ),
             ],

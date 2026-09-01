@@ -374,7 +374,7 @@ class _SummaryMetric extends StatelessWidget {
   }
 }
 
-class _BlockCollectionsCard extends StatelessWidget {
+class _BlockCollectionsCard extends StatefulWidget {
   const _BlockCollectionsCard({
     required this.blocks,
     required this.payments,
@@ -386,8 +386,15 @@ class _BlockCollectionsCard extends StatelessWidget {
   final int totalAmount;
 
   @override
+  State<_BlockCollectionsCard> createState() => _BlockCollectionsCardState();
+}
+
+class _BlockCollectionsCardState extends State<_BlockCollectionsCard> {
+  int _tab = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final maxAmount = blocks.fold<int>(
+    final maxAmount = widget.blocks.fold<int>(
       1,
       (max, block) => block.totalAmount > max ? block.totalAmount : max,
     );
@@ -398,30 +405,52 @@ class _BlockCollectionsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Block-wise Collection',
-            style: TextStyle(
-              color: _ink,
-              fontWeight: FontWeight.w900,
-              fontSize: 16,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Collection',
+                  style: TextStyle(
+                    color: _ink,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 180,
+                height: 36,
+                child: SegmentedPill(
+                  labels: const ['Blocks', 'Users'],
+                  selectedIndex: _tab,
+                  onChanged: (val) {
+                    setState(() {
+                      _tab = val;
+                    });
+                  },
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
-          ...blocks.map(
-            (block) {
-              final blockPayments = payments
-                  .where((p) => p.blockId == block.blockId)
-                  .toList();
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _BlockCollectionRow(
-                  block: block,
-                  payments: blockPayments,
-                  progress: block.totalAmount / maxAmount,
-                ),
-              );
-            },
-          ),
+          if (_tab == 0)
+            ...widget.blocks.map(
+              (block) {
+                final blockPayments = widget.payments
+                    .where((p) => p.blockId == block.blockId)
+                    .toList();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _BlockCollectionRow(
+                    block: block,
+                    payments: blockPayments,
+                    progress: block.totalAmount / maxAmount,
+                  ),
+                );
+              },
+            )
+          else
+            _UserWiseList(payments: widget.payments),
           Container(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
             decoration: const BoxDecoration(
@@ -439,7 +468,7 @@ class _BlockCollectionsCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '₹${formatIndianNumber(totalAmount)}',
+                  '₹${formatIndianNumber(widget.totalAmount)}',
                   style: const TextStyle(
                     color: _maroonDark,
                     fontWeight: FontWeight.w900,
@@ -449,6 +478,67 @@ class _BlockCollectionsCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _UserWiseList extends StatelessWidget {
+  const _UserWiseList({required this.payments});
+
+  final List<TransparencyPayment> payments;
+
+  @override
+  Widget build(BuildContext context) {
+    if (payments.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Text(
+          'No user contributions found.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: _muted),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: _surfaceWarm.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: payments.map((payment) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      payment.residentName,
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '₹${formatIndianNumber(payment.amount)}',
+                    style: const TextStyle(
+                      color: _leaf,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

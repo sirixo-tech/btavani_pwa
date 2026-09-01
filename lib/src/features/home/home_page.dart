@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
               childAspectRatio: 0.94,
               children: [
                 QuickActionCard(
-                  label: 'Contribute',
+                  label: 'Chanda',
                   icon: Icons.volunteer_activism,
                   color: _maroon,
                   onTap: () => widget.onTabSelected(2),

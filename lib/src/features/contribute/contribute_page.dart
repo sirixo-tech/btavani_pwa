@@ -298,12 +298,6 @@ class _ContributePageState extends State<ContributePage> {
             ),
             const SizedBox(height: 10),
             const SizedBox(height: 10),
-            Center(
-              child: Image.asset(
-                'assets/images/btavani.png',
-                height: 60,
-              ),
-            ),
             const SizedBox(height: 5),
             const Text(
               'Your contribution makes this celebration special!',

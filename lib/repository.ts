@@ -17,7 +17,10 @@ import type {
   VolunteerSubmission,
 } from "./types";
 
-const memory = createSeedDashboardData();
+const memory = (globalThis as any)._btavani_memory || createSeedDashboardData();
+if (process.env.NODE_ENV !== "production") {
+  (globalThis as any)._btavani_memory = memory;
+}
 
 type DbBlock = {
   id: string;
@@ -46,6 +49,7 @@ type DbPayment = {
   status: PaymentStatus;
   reference_id: string;
   screenshot_url: string;
+  receipt_number: string;
   created_at: string;
   paid_at: string | null;
 };
@@ -135,6 +139,7 @@ function mapPayment(row: DbPayment): Payment {
     status: row.status,
     referenceId: row.reference_id,
     screenshotUrl: row.screenshot_url,
+    receiptNumber: row.receipt_number || "",
     createdAt: row.created_at,
     paidAt: row.paid_at || "",
   };
@@ -470,7 +475,7 @@ export async function saveBlock(input: Partial<Block> & { id: string; name: stri
   };
 
   if (!hasDatabase()) {
-    const index = memory.blocks.findIndex((item) => item.id === block.id);
+    const index = memory.blocks.findIndex((item: any) => item.id === block.id);
     if (index >= 0) memory.blocks[index] = block;
     else memory.blocks.push(block);
     return block;
@@ -525,7 +530,7 @@ export async function saveCmsEntry(input: Omit<CmsEntry, "id"> & { id?: string }
   };
 
   if (!hasDatabase()) {
-    const index = memory.cmsEntries.findIndex((item) => item.id === entry.id);
+    const index = memory.cmsEntries.findIndex((item: any) => item.id === entry.id);
     if (index >= 0) memory.cmsEntries[index] = entry;
     else memory.cmsEntries.push(entry);
     return entry;
@@ -573,7 +578,7 @@ export async function updatePaymentStatus(
   referenceId: string,
 ) {
   if (!hasDatabase()) {
-    const payment = memory.payments.find((item) => item.id === id);
+    const payment = memory.payments.find((item: any) => item.id === id);
     if (payment) {
       payment.status = status;
       payment.referenceId = referenceId;
@@ -634,6 +639,7 @@ export async function createPayment(input: {
     status: input.status || "pending",
     referenceId: input.referenceId || "",
     screenshotUrl: input.screenshotUrl || "",
+    receiptNumber: `BTAVANI-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 900000 + 100000)}`,
     createdAt: new Date().toISOString(),
     paidAt: input.status === "paid" ? new Date().toISOString() : "",
   };
@@ -646,8 +652,8 @@ export async function createPayment(input: {
 
   await query(
     `insert into payments
-      (id, amount, block_id, resident_name, email, phone, flat_number, gotram, provider, status, reference_id, screenshot_url, paid_at)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      (id, amount, block_id, resident_name, email, phone, flat_number, gotram, provider, status, reference_id, screenshot_url, receipt_number, paid_at)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
     [
       payment.id,
       payment.amount,
@@ -661,6 +667,7 @@ export async function createPayment(input: {
       payment.status,
       payment.referenceId,
       payment.screenshotUrl,
+      payment.receiptNumber,
       payment.paidAt || null,
     ],
   );
@@ -746,7 +753,7 @@ export async function createAuctionBid(
   };
 
   if (!hasDatabase()) {
-    memory.bids = memory.bids.map((item) => ({ ...item, status: "outbid" }));
+    memory.bids = memory.bids.map((item: any) => ({ ...item, status: "outbid" }));
     memory.bids.unshift(bid);
     return bid;
   }
@@ -774,7 +781,7 @@ export async function createAuctionBid(
 
 export async function deleteCmsEntry(id: string) {
   if (!hasDatabase()) {
-    const index = memory.cmsEntries.findIndex((item) => item.id === id);
+    const index = memory.cmsEntries.findIndex((item: any) => item.id === id);
     if (index >= 0) memory.cmsEntries.splice(index, 1);
     return;
   }
@@ -784,7 +791,7 @@ export async function deleteCmsEntry(id: string) {
 
 export async function deletePayment(id: string) {
   if (!hasDatabase()) {
-    const index = memory.payments.findIndex((item) => item.id === id);
+    const index = memory.payments.findIndex((item: any) => item.id === id);
     if (index >= 0) memory.payments.splice(index, 1);
     return;
   }

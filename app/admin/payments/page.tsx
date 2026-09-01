@@ -28,6 +28,15 @@ export default async function PaymentsPage() {
             Track and update all incoming contributions.
           </p>
         </div>
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+          <a
+            href="/api/admin/payments/export"
+            download="payments.csv"
+            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Download CSV
+          </a>
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">

@@ -54,11 +54,12 @@ export async function query<T extends QueryResultRow>(
 async function seedDatabase() {
   const client = await getPool().connect();
 
-  try {
-    await client.query("begin");
-    await client.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS screenshot_url TEXT NOT NULL DEFAULT '';");
+    try {
+      await client.query("begin");
+      await client.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS screenshot_url TEXT NOT NULL DEFAULT '';");
+      await client.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_number TEXT UNIQUE;");
 
-    for (const block of seedBlocks) {
+      for (const block of seedBlocks) {
       await client.query(
         `insert into blocks
           (id, name, organizer_name, organizer_phone, upi_id, qr_image_url, payment_provider, razorpay_key_id, razorpay_link, is_active)
@@ -105,8 +106,8 @@ async function seedDatabase() {
     for (const payment of seedPayments) {
       await client.query(
         `insert into payments
-          (id, amount, block_id, resident_name, email, phone, flat_number, gotram, provider, status, reference_id, created_at, paid_at)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+          (id, amount, block_id, resident_name, email, phone, flat_number, gotram, provider, status, reference_id, receipt_number, created_at, paid_at)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
          on conflict (id) do nothing`,
         [
           payment.id,
@@ -120,6 +121,7 @@ async function seedDatabase() {
           payment.provider,
           payment.status,
           payment.referenceId,
+          payment.receiptNumber || `BTAVANI-${payment.createdAt.slice(0, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 900000 + 100000)}`,
           payment.createdAt,
           payment.paidAt || null,
         ],

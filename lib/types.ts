@@ -28,6 +28,7 @@ export type Payment = {
   status: PaymentStatus;
   referenceId: string;
   screenshotUrl: string;
+  receiptNumber: string;
   createdAt: string;
   paidAt: string;
 };

@@ -43,6 +43,7 @@ create table if not exists payments (
   status text not null default 'pending',
   reference_id text not null default '',
   screenshot_url text not null default '',
+  receipt_number text unique,
   created_at timestamptz not null default now(),
   paid_at timestamptz
 );

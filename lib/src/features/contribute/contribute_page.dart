@@ -237,6 +237,30 @@ class _ContributePageState extends State<ContributePage> {
     return null;
   }
 
+  Widget _buildHeaderLogo() {
+    final logoUrl = _appSettings?['app_logo'];
+    if (logoUrl != null && logoUrl.isNotEmpty) {
+      return Image.network(
+        logoUrl,
+        width: 150,
+        height: 54,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackHeaderLogo(),
+      );
+    }
+
+    return _buildFallbackHeaderLogo();
+  }
+
+  Widget _buildFallbackHeaderLogo() {
+    return Image.asset(
+      'assets/images/btavani.png',
+      width: 150,
+      height: 54,
+      fit: BoxFit.contain,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final amount = _selectedAmount ?? amounts.first.amount!;
@@ -251,43 +275,35 @@ class _ContributePageState extends State<ContributePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PageTopBar(
-              title: 'Contribute',
-              compact: true,
-              leading: IconButton(
-                tooltip: 'Back',
-                onPressed: _goBack,
-                icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-              ),
-              trailing: const SizedBox(width: 48),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Contribute to Avani Ganesh Utsav 2026',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _ink,
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 14),
-            _appSettings != null && _appSettings!['app_logo'] != null
-                ? Image.network(
-                    _appSettings!['app_logo']!,
-                    height: 52,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Image.asset(
-                      'assets/images/btavani.png',
-                      height: 52,
-                      fit: BoxFit.contain,
-                    ),
-                  )
-                : Image.asset(
-                    'assets/images/btavani.png',
-                    height: 52,
-                    fit: BoxFit.contain,
+            Row(
+              children: [
+                SizedBox(
+                  width: 48,
+                  child: IconButton(
+                    tooltip: 'Back',
+                    onPressed: _goBack,
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 18),
                   ),
+                ),
+                Expanded(child: Center(child: _buildHeaderLogo())),
+                SizedBox(
+                  width: 48,
+                  child: IconButton(
+                    tooltip: 'Announcements',
+                    onPressed: () => _push(context, const AnnouncementsPage()),
+                    icon: const Icon(Icons.notifications_none),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const SizedBox(height: 10),
+            Center(
+              child: Image.asset(
+                'assets/images/btavani.png',
+                height: 60,
+              ),
+            ),
             const SizedBox(height: 5),
             const Text(
               'Your contribution makes this celebration special!',

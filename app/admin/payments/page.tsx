@@ -8,7 +8,11 @@ function money(value: number) {
   return `Rs ${new Intl.NumberFormat("en-IN").format(value)}`;
 }
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ q?: string; status?: string }>;
+}) {
   const data = await getDashboardData();
   const statuses = ["created", "pending", "paid", "failed", "refunded"];
   const providers = [
@@ -16,6 +20,21 @@ export default async function PaymentsPage() {
     ["razorpay", "Razorpay integration"],
     ["manual", "Manual collection"],
   ];
+  
+  const params = await searchParams;
+  const q = params?.q?.toLowerCase() || "";
+  const statusFilter = params?.status || "";
+  
+  const payments = data.payments.filter((payment) => {
+    if (statusFilter && payment.status !== statusFilter) return false;
+    if (q) {
+      return payment.residentName.toLowerCase().includes(q) ||
+             payment.flatNumber.toLowerCase().includes(q) ||
+             payment.phone.toLowerCase().includes(q) ||
+             payment.blockName.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   return (
     <>
@@ -28,15 +47,32 @@ export default async function PaymentsPage() {
             Track and update all incoming contributions.
           </p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        
+        <form className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex flex-wrap gap-2 items-center">
+          <input 
+            name="q" 
+            defaultValue={q} 
+            placeholder="Search name, flat..." 
+            className="block rounded-md border-0 py-1.5 px-3 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
+          />
+          <select 
+            name="status" 
+            defaultValue={statusFilter} 
+            className="block rounded-md border-0 py-1.5 pl-3 pr-8 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
+          >
+            <option value="">All Statuses</option>
+            {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <button type="submit" className="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50">Filter</button>
+          
           <a
             href="/api/admin/payments/export"
             download="payments.csv"
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="block rounded-md bg-indigo-600 px-3 py-1.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
           >
-            Download CSV
+            Export
           </a>
-        </div>
+        </form>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
@@ -55,7 +91,7 @@ export default async function PaymentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {data.payments.map((payment) => (
+                {payments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-zinc-50/50">
                     <td className="px-4 py-3">
                       <p className="font-semibold text-zinc-900">

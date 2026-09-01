@@ -378,6 +378,42 @@ export async function getMobileBootstrap() {
   if (cached) return cached;
 
   const data = await getDashboardData();
+  const trans = await getTransparencyData();
+  
+  const appSettings = data.cmsEntries.filter(
+    (entry) => entry.section === "app_setting" && entry.isPublished,
+  );
+  
+  appSettings.push({
+    id: 'tracker_total_amount',
+    section: 'app_setting',
+    title: 'tracker_total_amount',
+    imageUrl: trans.totalVerifiedCollection.toString(),
+  } as any);
+  appSettings.push({
+    id: 'tracker_target_percentage',
+    section: 'app_setting',
+    title: 'tracker_target_percentage',
+    imageUrl: Math.min(100, Math.round((trans.totalVerifiedCollection / 2000000) * 100)).toString(),
+  } as any);
+  appSettings.push({
+    id: 'tracker_families_count',
+    section: 'app_setting',
+    title: 'tracker_families_count',
+    imageUrl: trans.totalPayments.toString(),
+  } as any);
+  
+  const formattedDate = trans.lastUpdated 
+    ? new Date(trans.lastUpdated).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })
+    : 'Recently';
+    
+  appSettings.push({
+    id: 'tracker_last_updated',
+    section: 'app_setting',
+    title: 'tracker_last_updated',
+    imageUrl: formattedDate,
+  } as any);
+
   const response = {
     blocks: data.blocks.filter((block) => block.isActive),
     events: data.cmsEntries.filter(
@@ -395,12 +431,8 @@ export async function getMobileBootstrap() {
     volunteerRoles: data.cmsEntries.filter(
       (entry) => entry.section === "volunteer_role" && entry.isPublished,
     ),
-    appSettings: data.cmsEntries.filter(
-      (entry) => entry.section === "app_setting" && entry.isPublished,
-    ),
-    settings: data.cmsEntries.filter(
-      (entry) => entry.section === "app_setting" && entry.isPublished,
-    ),
+    appSettings: appSettings,
+    settings: appSettings,
   };
 
   await setCachedJson("mobile:bootstrap", response, 60);

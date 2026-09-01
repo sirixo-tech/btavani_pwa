@@ -13,7 +13,14 @@ class MorePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const PageTopBar(title: 'More', compact: true),
+            PageTopBar(
+              title: 'More',
+              compact: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                onPressed: () => onTabSelected(0),
+              ),
+            ),
             const SizedBox(height: 4),
             const BrandMiniHeader(),
             const SizedBox(height: 20),

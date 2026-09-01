@@ -134,49 +134,20 @@ class _ContributePageState extends State<ContributePage> {
           builder: (context) => Dialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            child: TweenAnimationBuilder(
-              tween: Tween<double>(begin: 0.5, end: 1.0),
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.elasticOut,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.amber.withOpacity(0.5),
-                              blurRadius: 40,
-                              spreadRadius: 10,
-                            )
-                          ]
-                        ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/images/ganesha_contribute.jpg',
-                            width: 150,
-                            height: 150,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'May Lord Ganesha Bless You!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const AnimatedCheckmark(),
+                const SizedBox(height: 24),
+                const Text(
+                  'Payment Successful!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              },
+                ),
+              ],
             ),
           ),
         );
@@ -1441,4 +1412,95 @@ String formatIndianNumber(int value) {
   }
 
   return '${parts.join(',')},$lastThree';
+}
+
+class AnimatedCheckmark extends StatefulWidget {
+  const AnimatedCheckmark({super.key});
+  @override
+  State<AnimatedCheckmark> createState() => _AnimatedCheckmarkState();
+}
+
+class _AnimatedCheckmarkState extends State<AnimatedCheckmark> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _checkAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
+    ));
+    _checkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
+    ));
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: _CheckmarkPainter(_scaleAnimation.value, _checkAnimation.value),
+          size: const Size(120, 120),
+        );
+      },
+    );
+  }
+}
+
+class _CheckmarkPainter extends CustomPainter {
+  final double scale;
+  final double checkProgress;
+  _CheckmarkPainter(this.scale, this.checkProgress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) * scale;
+
+    if (scale > 0) {
+      final bgPaint = Paint()
+        ..color = const Color(0xFF2E7D32)
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawCircle(center, radius, bgPaint);
+    }
+
+    if (checkProgress > 0) {
+      final checkPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8.0
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      final path = Path();
+      final startPoint = Offset(center.dx - radius * 0.4, center.dy + radius * 0.1);
+      final midPoint = Offset(center.dx - radius * 0.1, center.dy + radius * 0.4);
+      final endPoint = Offset(center.dx + radius * 0.4, center.dy - radius * 0.3);
+
+      path.moveTo(startPoint.dx, startPoint.dy);
+      path.lineTo(midPoint.dx, midPoint.dy);
+      path.lineTo(endPoint.dx, endPoint.dy);
+
+      final pathMetrics = path.computeMetrics().first;
+      final extractPath = pathMetrics.extractPath(0, pathMetrics.length * checkProgress);
+      canvas.drawPath(extractPath, checkPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CheckmarkPainter oldDelegate) => true;
 }

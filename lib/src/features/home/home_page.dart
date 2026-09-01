@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => _push(context, const AnnouncementsPage()),
                 ),
                 QuickActionCard(
-                  label: 'Events',
+                  label: 'Event Registration',
                   icon: Icons.theater_comedy,
                   color: const Color(0xFFE08912),
                   onTap: () => _push(context, const EventRegistrationPage()),

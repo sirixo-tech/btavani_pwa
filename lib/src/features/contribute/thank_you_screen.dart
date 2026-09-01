@@ -22,6 +22,14 @@ class ThankYouScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAF8),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: onBackToHome,
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),

@@ -308,7 +308,17 @@ function aggregateMemoryTransparency(data: DashboardData): TransparencyData {
       });
     });
 
-  return buildTransparencyResponse(blocks, data.cmsEntries);
+  const response = buildTransparencyResponse(blocks, data.cmsEntries);
+  response.payments = data.payments
+    .filter(p => p.status === 'paid')
+    .map(p => ({
+      residentName: p.residentName,
+      amount: p.amount,
+      blockId: p.blockId,
+      resident_name: p.residentName,
+      block_id: p.blockId,
+    }));
+  return response;
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -394,7 +404,7 @@ export async function getTransparencyData(): Promise<TransparencyData> {
     return response;
   }
 
-  const [blocks, settings] = await Promise.all([
+  const [blocks, settings, payments] = await Promise.all([
     query<DbTransparencyBlock>(
       `select
         b.id as block_id,
@@ -413,6 +423,12 @@ export async function getTransparencyData(): Promise<TransparencyData> {
        from cms_entries
        where section = 'app_setting' and is_published = true`,
     ),
+    query<{ resident_name: string; amount: number; block_id: string }>(
+      `select resident_name, amount, block_id
+       from payments
+       where status = 'paid'
+       order by created_at desc`,
+    ),
   ]);
 
   const response = buildTransparencyResponse(
@@ -425,6 +441,17 @@ export async function getTransparencyData(): Promise<TransparencyData> {
       label: row.label,
     })),
   );
+  
+  response.payments = [
+    // Database payments
+    ...payments.rows.map(row => ({
+      residentName: row.resident_name,
+      amount: row.amount,
+      blockId: row.block_id,
+      resident_name: row.resident_name,
+      block_id: row.block_id,
+    })),
+  ];
 
   await setCachedJson("mobile:transparency", response, 30);
   return response;

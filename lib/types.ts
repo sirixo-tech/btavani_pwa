@@ -108,6 +108,13 @@ export type TransparencyBlock = {
 
 export type TransparencyData = {
   blocks: TransparencyBlock[];
+  payments: {
+    residentName: string;
+    amount: number;
+    blockId: string;
+    resident_name?: string;
+    block_id?: string;
+  }[];
   totals: {
     verifiedCollection: number;
     totalPayments: number;

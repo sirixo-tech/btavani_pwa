@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'src/core/confi/api_config.dart';
@@ -24,6 +25,7 @@ part 'src/features/home/home_page.dart';
 part 'src/features/events/events_page.dart';
 part 'src/features/contribute/contribute_page.dart';
 part 'src/features/more/more_page.dart';
+part 'src/features/more/transparency_page.dart';
 part 'src/features/participation/event_registration_page.dart';
 part 'src/features/volunteer/volunteer_page.dart';
 part 'src/features/schedule/schedule_page.dart';

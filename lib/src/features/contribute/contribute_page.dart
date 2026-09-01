@@ -24,6 +24,8 @@ class _ContributePageState extends State<ContributePage> {
   final _phoneController = TextEditingController();
   final _flatController = TextEditingController();
   final _gotramController = TextEditingController();
+  final _utrController = TextEditingController();
+  XFile? _screenshotFile;
 
   final List<ContributionAmountOption> amounts = const [
     ContributionAmountOption(2001),
@@ -102,6 +104,7 @@ class _ContributePageState extends State<ContributePage> {
     _phoneController.dispose();
     _flatController.dispose();
     _gotramController.dispose();
+    _utrController.dispose();
     super.dispose();
   }
 
@@ -122,6 +125,9 @@ class _ContributePageState extends State<ContributePage> {
           phone: _phoneController.text.trim(),
           flatNumber: _flatController.text.trim(),
           gotram: _gotramController.text.trim(),
+          utr: _utrController.text.trim(),
+          screenshotBytes: _screenshotFile != null ? await _screenshotFile!.readAsBytes() : null,
+          screenshotName: _screenshotFile?.name,
         );
         if (!mounted) return;
         _showSnack('Payment marked complete. Thank you for contributing.');
@@ -254,6 +260,16 @@ class _ContributePageState extends State<ContributePage> {
               trailing: const SizedBox(width: 48),
             ),
             const SizedBox(height: 8),
+            const Text(
+              'Contribute to Avani Ganesh Utsav 2026',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _ink,
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 14),
             _appSettings != null && _appSettings!['app_logo'] != null
                 ? Image.network(
                     _appSettings!['app_logo']!,
@@ -270,16 +286,6 @@ class _ContributePageState extends State<ContributePage> {
                     height: 52,
                     fit: BoxFit.contain,
                   ),
-            const SizedBox(height: 14),
-            const Text(
-              'Contribute to Avani Ganesh Utsav 2026',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _ink,
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
             const SizedBox(height: 5),
             const Text(
               'Your contribution makes this celebration special!',
@@ -350,6 +356,15 @@ class _ContributePageState extends State<ContributePage> {
                     qrImageUrl: _selectedQrImageUrl,
                     upiPayload: _upiUri.toString(),
                     paymentMarkedComplete: _paymentMarkedComplete,
+                    utrController: _utrController,
+                    screenshotFileName: _screenshotFile?.name,
+                    onPickScreenshot: () async {
+                      final picker = ImagePicker();
+                      final file = await picker.pickImage(source: ImageSource.gallery);
+                      if (file != null) {
+                        setState(() => _screenshotFile = file);
+                      }
+                    },
                   ),
                 },
               ),
@@ -809,6 +824,9 @@ class _PaymentStep extends StatelessWidget {
     required this.qrImageUrl,
     required this.upiPayload,
     required this.paymentMarkedComplete,
+    required this.utrController,
+    this.screenshotFileName,
+    required this.onPickScreenshot,
   });
 
   final int amount;
@@ -817,6 +835,9 @@ class _PaymentStep extends StatelessWidget {
   final String qrImageUrl;
   final String upiPayload;
   final bool paymentMarkedComplete;
+  final TextEditingController utrController;
+  final String? screenshotFileName;
+  final VoidCallback onPickScreenshot;
 
   @override
   Widget build(BuildContext context) {
@@ -950,11 +971,57 @@ class _PaymentStep extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 22),
+        const _StepTitle(
+          title: 'Have you completed the payment?',
+          subtitle: 'Please submit payment details for verification.',
+        ),
+        const SizedBox(height: 16),
+        ContributionTextField(
+          label: 'UTR / Transaction ID *',
+          hint: 'e.g. 123456789012',
+          icon: Icons.tag,
+          controller: utrController,
+        ),
+        const SizedBox(height: 4),
+        const _FieldLabel('Screenshot (Optional)'),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onPickScreenshot,
+          borderRadius: BorderRadius.circular(7),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: _paper,
+              border: Border.all(color: _line),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.image_outlined, color: _maroon, size: 19),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    screenshotFileName ?? 'Upload screenshot for reference',
+                    style: TextStyle(
+                      color: screenshotFileName != null ? _ink : _muted,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (screenshotFileName != null)
+                  const Icon(Icons.check_circle, color: Colors.green, size: 19),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 12),
         const ContributionNotice(
           icon: Icons.shield_outlined,
           text:
-              'This QR code is for the selected block only. Please scan & complete your payment.',
+              'Your payment will be verified by your block volunteer.',
         ),
         if (paymentMarkedComplete) ...[
           const SizedBox(height: 12),

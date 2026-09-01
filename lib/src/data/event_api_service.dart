@@ -106,25 +106,59 @@ class EventApiService {
     required String phone,
     required String flatNumber,
     required String gotram,
+    required String utr,
+    List<int>? screenshotBytes,
+    String? screenshotName,
   }) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/api/mobile/payments');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'amount': amount,
-        'blockId': blockId,
-        'residentName': residentName,
-        'email': email,
-        'phone': phone,
-        'flatNumber': flatNumber,
-        'gotram': gotram,
-        'provider': 'upi_qr',
-        'status': 'pending',
-      }),
-    );
-    if (response.statusCode != 201) {
-      throw Exception('Failed to submit payment');
+    
+    if (screenshotBytes != null) {
+      final request = http.MultipartRequest('POST', url)
+        ..fields['amount'] = amount.toString()
+        ..fields['blockId'] = blockId
+        ..fields['residentName'] = residentName
+        ..fields['email'] = email
+        ..fields['phone'] = phone
+        ..fields['flatNumber'] = flatNumber
+        ..fields['gotram'] = gotram
+        ..fields['provider'] = 'upi_qr'
+        ..fields['status'] = 'pending'
+        ..fields['referenceId'] = utr;
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'screenshot',
+          screenshotBytes,
+          filename: screenshotName ?? 'screenshot.jpg',
+        ),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode != 201) {
+        throw Exception('Failed to submit payment. Status code: ${response.statusCode}');
+      }
+    } else {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'amount': amount,
+          'blockId': blockId,
+          'residentName': residentName,
+          'email': email,
+          'phone': phone,
+          'flatNumber': flatNumber,
+          'gotram': gotram,
+          'provider': 'upi_qr',
+          'status': 'pending',
+          'referenceId': utr,
+        }),
+      );
+      if (response.statusCode != 201) {
+        throw Exception('Failed to submit payment');
+      }
     }
   }
 

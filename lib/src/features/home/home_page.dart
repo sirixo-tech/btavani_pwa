@@ -39,13 +39,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HomeTopBar(onMenuTap: () => widget.onTabSelected(3)),
-            const SizedBox(height: 6),
-            BrandHeader(appSettings: _appSettings),
+            HomeTopBar(
+              onMenuTap: () => widget.onTabSelected(3),
+              appSettings: _appSettings,
+            ),
             const SizedBox(height: 14),
             BuildingHero(appSettings: _appSettings),
-            const SizedBox(height: 16),
-            const WelcomePanel(),
             const SizedBox(height: 20),
             Text(
               'Quick Access',
@@ -66,12 +65,11 @@ class _HomePageState extends State<HomePage> {
                   color: _maroon,
                   onTap: () => widget.onTabSelected(2),
                 ),
-
                 QuickActionCard(
-                  label: 'Participate',
-                  icon: Icons.theater_comedy,
+                  label: 'Gallery',
+                  icon: Icons.photo_library,
                   color: _gold,
-                  onTap: () => _push(context, const EventRegistrationPage()),
+                  onTap: () => _push(context, const GalleryPage()),
                 ),
                 QuickActionCard(
                   label: 'Volunteer',
@@ -92,15 +90,13 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => _push(context, const AnnouncementsPage()),
                 ),
                 QuickActionCard(
-                  label: 'Utsav Gallery',
-                  icon: Icons.photo_library,
+                  label: 'Events',
+                  icon: Icons.theater_comedy,
                   color: const Color(0xFFE08912),
-                  onTap: () => _push(context, const GalleryPage()),
+                  onTap: () => _push(context, const EventRegistrationPage()),
                 ),
               ],
             ),
-            const SizedBox(height: 18),
-            const FestivalRibbon(),
           ],
         ),
       ),
@@ -109,20 +105,31 @@ class _HomePageState extends State<HomePage> {
 }
 
 class HomeTopBar extends StatelessWidget {
-  const HomeTopBar({required this.onMenuTap, super.key});
+  const HomeTopBar({required this.onMenuTap, this.appSettings, super.key});
 
   final VoidCallback onMenuTap;
+  final Map<String, String>? appSettings;
 
   @override
   Widget build(BuildContext context) {
+    final logoUrl = appSettings?['app_logo'];
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           tooltip: 'Menu',
           onPressed: onMenuTap,
           icon: const Icon(Icons.menu),
         ),
-        const Spacer(),
+        logoUrl != null
+            ? Image.network(
+                logoUrl,
+                width: 140,
+                height: 50,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => _buildFallbackLogo(),
+              )
+            : _buildFallbackLogo(),
         IconButton(
           tooltip: 'Notifications',
           onPressed: () => _push(context, const AnnouncementsPage()),
@@ -135,36 +142,12 @@ class HomeTopBar extends StatelessWidget {
       ],
     );
   }
-}
 
-class BrandHeader extends StatelessWidget {
-  const BrandHeader({this.appSettings, super.key});
-
-  final Map<String, String>? appSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    final logoUrl = appSettings?['app_logo'];
-    return Column(
-      children: [
-        logoUrl != null
-            ? Image.network(
-                logoUrl,
-                width: 250,
-                height: 120,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => _buildFallback(),
-              )
-            : _buildFallback(),
-      ],
-    );
-  }
-
-  Widget _buildFallback() {
+  Widget _buildFallbackLogo() {
     return Image.asset(
       'assets/images/btavani.png',
-      width: 250,
-      height: 120,
+      width: 140,
+      height: 50,
       fit: BoxFit.contain,
     );
   }

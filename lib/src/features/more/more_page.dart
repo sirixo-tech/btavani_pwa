@@ -36,6 +36,12 @@ class MorePage extends StatelessWidget {
               onTap: () => _push(context, const GalleryPage()),
             ),
             MenuTile(
+              icon: Icons.account_balance_wallet,
+              title: 'Transparency',
+              subtitle: 'Block-wise collection and expenses',
+              onTap: () => _push(context, const TransparencyPage()),
+            ),
+            MenuTile(
               icon: Icons.gavel,
               title: 'Laddoo Auction',
               subtitle: 'Live bidding opens during the event',

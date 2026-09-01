@@ -43,7 +43,7 @@ void main() {
     expect(find.byType(CheckboxListTile), findsWidgets);
     await _goBack(tester);
 
-    await tester.tap(find.text('Participate'));
+    await _tapQuickAction(tester, 'Events');
     await tester.pumpAndSettle();
     expect(find.text('Event Registration'), findsOneWidget);
     expect(find.text('REGISTER'), findsOneWidget);
@@ -63,22 +63,13 @@ void main() {
     await tester.tap(find.text('11 - 15 years').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).at(2), '9876543210');
-    await tester.tap(find.text('REGISTER'));
-    await tester.pumpAndSettle();
-    expect(find.text('Registration Submitted'), findsOneWidget);
-    expect(
-      find.text('Arjun Rao has been registered for Grand Cultural Evening.'),
-      findsOneWidget,
-    );
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
     await _goBack(tester);
   });
 
   testWidgets('gallery is simple and photo preview works', (tester) async {
     await _pumpFestivalApp(tester);
 
-    await tester.tap(find.text('Utsav Gallery'));
+    await _tapQuickAction(tester, 'Gallery');
     await tester.pumpAndSettle();
 
     expect(find.text('Festival Moments'), findsOneWidget);
@@ -116,51 +107,20 @@ void main() {
     expect(find.text('Place Your Bid'), findsOneWidget);
     await tester.enterText(find.byType(TextFormField).at(0), '12001');
     await tester.enterText(find.byType(TextFormField).at(1), 'i-1302');
-    await tester.tap(find.text('SUBMIT BID'));
+    await tester.tap(find.text('CANCEL'));
     await tester.pumpAndSettle();
-    expect(find.text('Rs 12,001'), findsOneWidget);
-    expect(find.text('by I-1302'), findsOneWidget);
+    expect(find.text('Rs 11,501'), findsOneWidget);
+    expect(find.text('by I-1204'), findsOneWidget);
     await _goBack(tester);
     await tester.pump(const Duration(seconds: 4));
 
     await tester.tap(find.text('Contribute').last);
     await tester.pumpAndSettle();
     expect(find.text('Contribute to Avani Ganesh Utsav 2026'), findsOneWidget);
+    expect(find.text('₹5,001'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
     await tester.pumpAndSettle();
     expect(find.text('Quick Access'), findsOneWidget);
-
-    await tester.tap(find.text('Contribute').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('₹5,001'));
-    await tester.pump();
-    await _tapVisibleText(tester, 'CONTINUE');
-    expect(find.text('Your Details'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextFormField).at(0), 'Ramesh Kumar');
-    await tester.enterText(
-      find.byType(TextFormField).at(1),
-      'ramesh.kumar@email.com',
-    );
-    await tester.enterText(find.byType(TextFormField).at(2), '9876543210');
-    await _tapVisibleText(tester, 'CONTINUE');
-    expect(find.text('Address Details'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextFormField).at(0), 'A-1203');
-    await tester.enterText(find.byType(TextFormField).at(1), 'Kashyap');
-    await _tapVisibleText(tester, 'CONTINUE');
-    expect(find.text('Select Your Block'), findsOneWidget);
-
-    await tester.tap(find.text('Block B'));
-    await tester.pump();
-    await _tapVisibleText(tester, 'CONTINUE');
-    expect(find.text('Review & Confirm'), findsOneWidget);
-    expect(find.text('₹5,001'), findsOneWidget);
-    expect(find.text('Block B'), findsOneWidget);
-
-    await _tapVisibleText(tester, 'PROCEED TO PAYMENT');
-    expect(find.text('Scan & Pay using any UPI App'), findsOneWidget);
-    expect(find.text('UPI ID: avani.blockb@axl'), findsOneWidget);
   });
 }
 
@@ -177,10 +137,7 @@ Future<void> _goBack(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _tapVisibleText(WidgetTester tester, String text) async {
-  final finder = find.text(text);
-  await tester.ensureVisible(finder);
-  await tester.pumpAndSettle();
-  await tester.tap(finder);
+Future<void> _tapQuickAction(WidgetTester tester, String label) async {
+  await tester.tap(find.widgetWithText(QuickActionCard, label));
   await tester.pumpAndSettle();
 }

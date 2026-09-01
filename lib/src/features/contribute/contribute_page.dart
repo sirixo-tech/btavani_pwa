@@ -53,16 +53,18 @@ class _ContributePageState extends State<ContributePage> {
       final bootstrap = await EventApiService().fetchBootstrap();
       if (!mounted) return;
       setState(() {
-        _blocks = bootstrap.blocks;
+        _blocks = bootstrap.blocks.isEmpty ? fallbackBlocks : bootstrap.blocks;
         _appSettings = bootstrap.appSettings;
         if (_blocks.isNotEmpty) {
-           _selectedBlock = _blocks.first;
+          _selectedBlock = _blocks.first;
         }
         _isLoadingBlocks = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
+        _blocks = fallbackBlocks;
+        _selectedBlock = fallbackBlocks.first;
         _isLoadingBlocks = false;
       });
     }
@@ -126,12 +128,14 @@ class _ContributePageState extends State<ContributePage> {
           flatNumber: _flatController.text.trim(),
           gotram: _gotramController.text.trim(),
           utr: _utrController.text.trim(),
-          screenshotBytes: _screenshotFile != null ? await _screenshotFile!.readAsBytes() : null,
+          screenshotBytes: _screenshotFile != null
+              ? await _screenshotFile!.readAsBytes()
+              : null,
           screenshotName: _screenshotFile?.name,
         );
         if (!mounted) return;
         _showSnack('Payment marked complete. Thank you for contributing.');
-        
+
         // Navigate to home page
         if (widget.onBackToHome != null) {
           widget.onBackToHome?.call();
@@ -238,9 +242,7 @@ class _ContributePageState extends State<ContributePage> {
     final amount = _selectedAmount ?? amounts.first.amount!;
 
     if (_isLoadingBlocks) {
-      return const Center(
-        child: CircularProgressIndicator(color: _maroon),
-      );
+      return const Center(child: CircularProgressIndicator(color: _maroon));
     }
 
     return SafeArea(
@@ -328,7 +330,11 @@ class _ContributePageState extends State<ContributePage> {
                     flatController: _flatController,
                     gotramController: _gotramController,
                     onBlockChanged: (block) {
-                      setState(() => _selectedBlock = _blocks.firstWhere((b) => b.name == block));
+                      setState(
+                        () => _selectedBlock = _blocks.firstWhere(
+                          (b) => b.name == block,
+                        ),
+                      );
                     },
                     validateRequired: _validateRequired,
                   ),
@@ -336,7 +342,11 @@ class _ContributePageState extends State<ContributePage> {
                     blocks: _blocks.map((b) => b.name).toList(),
                     selectedBlock: _selectedBlock?.name ?? '',
                     onSelected: (block) {
-                      setState(() => _selectedBlock = _blocks.firstWhere((b) => b.name == block));
+                      setState(
+                        () => _selectedBlock = _blocks.firstWhere(
+                          (b) => b.name == block,
+                        ),
+                      );
                     },
                   ),
                   4 => _ReviewStep(
@@ -360,7 +370,9 @@ class _ContributePageState extends State<ContributePage> {
                     screenshotFileName: _screenshotFile?.name,
                     onPickScreenshot: () async {
                       final picker = ImagePicker();
-                      final file = await picker.pickImage(source: ImageSource.gallery);
+                      final file = await picker.pickImage(
+                        source: ImageSource.gallery,
+                      );
                       if (file != null) {
                         setState(() => _screenshotFile = file);
                       }
@@ -1020,8 +1032,7 @@ class _PaymentStep extends StatelessWidget {
         const SizedBox(height: 12),
         const ContributionNotice(
           icon: Icons.shield_outlined,
-          text:
-              'Your payment will be verified by your block volunteer.',
+          text: 'Your payment will be verified by your block volunteer.',
         ),
         if (paymentMarkedComplete) ...[
           const SizedBox(height: 12),

@@ -162,3 +162,55 @@ const galleryPhotos = [
     subtitle: 'Cultural evening',
   ),
 ];
+
+const fallbackBlocks = [
+  Block(
+    id: 'blocka',
+    name: 'Block A',
+    upiId: 'avani.blocka@axl',
+    qrImageUrl: '',
+    isActive: true,
+  ),
+  Block(
+    id: 'blockb',
+    name: 'Block B',
+    upiId: 'avani.blockb@axl',
+    qrImageUrl: '',
+    isActive: true,
+  ),
+  Block(
+    id: 'blockc',
+    name: 'Block C',
+    upiId: 'avani.blockc@axl',
+    qrImageUrl: '',
+    isActive: true,
+  ),
+  Block(
+    id: 'blockd',
+    name: 'Block D',
+    upiId: 'avani.blockd@axl',
+    qrImageUrl: '',
+    isActive: true,
+  ),
+  Block(
+    id: 'blocke',
+    name: 'Block E',
+    upiId: 'avani.blocke@axl',
+    qrImageUrl: '',
+    isActive: true,
+  ),
+  Block(
+    id: 'blockf',
+    name: 'Block F',
+    upiId: 'avani.blockf@axl',
+    qrImageUrl: '',
+    isActive: true,
+  ),
+  Block(
+    id: 'blockg',
+    name: 'Block G',
+    upiId: 'avani.blockg@axl',
+    qrImageUrl: '',
+    isActive: true,
+  ),
+];

@@ -58,6 +58,12 @@ async function seedDatabase() {
       await client.query("begin");
       await client.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS screenshot_url TEXT NOT NULL DEFAULT '';");
       await client.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_number TEXT UNIQUE;");
+      
+      await client.query("ALTER TABLE event_registrations ADD COLUMN IF NOT EXISTS person_type TEXT NOT NULL DEFAULT 'Kids';");
+      await client.query("ALTER TABLE event_registrations ADD COLUMN IF NOT EXISTS kids_name TEXT NOT NULL DEFAULT '';");
+      await client.query("ALTER TABLE event_registrations ADD COLUMN IF NOT EXISTS kids_age TEXT NOT NULL DEFAULT '';");
+      await client.query("ALTER TABLE event_registrations ADD COLUMN IF NOT EXISTS parent_adult_phone TEXT NOT NULL DEFAULT '';");
+      await client.query("ALTER TABLE event_registrations ADD COLUMN IF NOT EXISTS other_performance_details TEXT NOT NULL DEFAULT '';");
 
       for (const block of seedBlocks) {
       await client.query(

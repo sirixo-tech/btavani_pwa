@@ -237,3 +237,32 @@ export async function deletePaymentAction(formData: FormData) {
     revalidatePath("/admin/payments");
   }
 }
+
+export async function updateRegistrationAction(formData: FormData) {
+  await requireAdmin();
+  const { updateRegistrationStatus } = await import("@/lib/repository");
+
+  const parsed = z
+    .object({
+      id: z.string().min(1),
+      status: z.enum(["new", "confirmed", "waitlisted", "cancelled"]),
+    })
+    .parse({
+      id: text(formData, "id"),
+      status: text(formData, "status"),
+    });
+
+  await updateRegistrationStatus(parsed.id, parsed.status as any);
+  revalidatePath("/admin/registrations");
+  revalidatePath("/admin", "layout");
+}
+
+export async function deleteRegistrationAction(formData: FormData) {
+  await requireAdmin();
+  const { deleteRegistration } = await import("@/lib/repository");
+  const id = text(formData, "id");
+  if (id) {
+    await deleteRegistration(id);
+    revalidatePath("/admin/registrations");
+  }
+}

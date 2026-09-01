@@ -58,6 +58,11 @@ create table if not exists event_registrations (
   flat_number text not null,
   age_group text not null,
   mobile text not null,
+  person_type text not null default 'Kids',
+  kids_name text not null default '',
+  kids_age text not null default '',
+  parent_adult_phone text not null default '',
+  other_performance_details text not null default '',
   status text not null default 'new',
   created_at timestamptz not null default now()
 );

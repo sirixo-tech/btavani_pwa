@@ -55,6 +55,11 @@ export type Registration = {
   flatNumber: string;
   ageGroup: string;
   mobile: string;
+  personType: string;
+  kidsName: string;
+  kidsAge: string;
+  parentAdultPhone: string;
+  otherPerformanceDetails: string;
   status: "new" | "confirmed" | "waitlisted" | "cancelled";
   createdAt: string;
 };

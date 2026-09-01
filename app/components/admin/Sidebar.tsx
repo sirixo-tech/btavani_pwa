@@ -23,6 +23,7 @@ const navigation = [
   { name: "PWA Content", href: "/admin/content", icon: DocumentTextIcon },
   { name: "Blocks & QR", href: "/admin/blocks", icon: QrCodeIcon },
   { name: "Payments", href: "/admin/payments", icon: CreditCardIcon },
+  { name: "Registrations", href: "/admin/registrations", icon: UsersIcon },
   { name: "Auction", href: "/admin/auction", icon: DocumentTextIcon },
   { name: "Settings", href: "/admin/settings", icon: Cog6ToothIcon },
 ];

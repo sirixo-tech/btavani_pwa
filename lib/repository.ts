@@ -729,8 +729,8 @@ export async function createRegistration(
 
   await query(
     `insert into event_registrations
-      (id, event_title, participant_name, flat_number, age_group, mobile, status)
-     values ($1,$2,$3,$4,$5,$6,$7)`,
+      (id, event_title, participant_name, flat_number, age_group, mobile, status, person_type, kids_name, kids_age, parent_adult_phone, other_performance_details)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
     [
       registration.id,
       registration.eventTitle,
@@ -739,6 +739,11 @@ export async function createRegistration(
       registration.ageGroup,
       registration.mobile,
       registration.status,
+      registration.personType,
+      registration.kidsName,
+      registration.kidsAge,
+      registration.parentAdultPhone,
+      registration.otherPerformanceDetails,
     ],
   );
   return registration;
@@ -843,4 +848,21 @@ export async function clearDemoData() {
 
   await query("TRUNCATE TABLE cms_entries, payments, event_registrations, volunteer_submissions, auction_bids CASCADE;");
   await clearMobileCache();
+}
+
+export async function updateRegistrationStatus(id: string, status: Registration["status"]) {
+  if (!hasDatabase()) {
+    const reg = memory.registrations.find((r) => r.id === id);
+    if (reg) reg.status = status;
+    return;
+  }
+  await query("update event_registrations set status = $1 where id = $2", [status, id]);
+}
+
+export async function deleteRegistration(id: string) {
+  if (!hasDatabase()) {
+    memory.registrations = memory.registrations.filter((r) => r.id !== id);
+    return;
+  }
+  await query("delete from event_registrations where id = $1", [id]);
 }

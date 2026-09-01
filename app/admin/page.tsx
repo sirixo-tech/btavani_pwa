@@ -16,11 +16,14 @@ export default async function AdminDashboardPage() {
 
   return (
     <>
-      <div className="md:flex md:items-center md:justify-between">
+      <div className="md:flex md:items-center md:justify-between border-b border-zinc-200 pb-5">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-zinc-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Overview
+          <h2 className="text-3xl font-bold leading-7 text-zinc-900 sm:truncate sm:tracking-tight">
+            Dashboard Overview
           </h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            A summary of your collections, payments, and events.
+          </p>
         </div>
       </div>
 
@@ -49,13 +52,18 @@ export default async function AdminDashboardPage() {
       </dl>
 
       {/* Recent Activity Table */}
-      <h3 className="mt-10 text-lg font-medium leading-6 text-zinc-900">Recent Payments</h3>
-      <div className="mt-4 flex flex-col">
+      <div className="mt-10 flex items-center justify-between">
+        <h3 className="text-xl font-semibold leading-6 text-zinc-900">Recent Payments</h3>
+        <a href="/admin/payments" className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 transition-colors">
+          View all <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+      <div className="mt-6 flex flex-col">
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table className="min-w-full divide-y divide-zinc-300">
-                <thead className="bg-zinc-50">
+            <div className="overflow-hidden shadow-sm ring-1 ring-zinc-200 md:rounded-xl">
+              <table className="min-w-full divide-y divide-zinc-200">
+                <thead className="bg-zinc-50 border-b border-zinc-200">
                   <tr>
                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-zinc-900 sm:pl-6">Resident Name</th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">Amount</th>

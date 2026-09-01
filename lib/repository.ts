@@ -12,6 +12,8 @@ import type {
   PaymentProvider,
   PaymentStatus,
   Registration,
+  TransparencyBlock,
+  TransparencyData,
   VolunteerSubmission,
 } from "./types";
 
@@ -93,6 +95,14 @@ type DbBid = {
   mobile: string;
   status: AuctionBid["status"];
   created_at: string;
+};
+
+type DbTransparencyBlock = {
+  block_id: string;
+  block_name: string;
+  total_payments: number | string;
+  total_amount: number | string;
+  last_paid_at: string | null;
 };
 
 function mapBlock(row: DbBlock): Block {
@@ -198,6 +208,109 @@ function totals(data: Omit<DashboardData, "totals">) {
   };
 }
 
+function toNumber(value: unknown) {
+  if (typeof value === "number") return value;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getConfiguredExpenseTotal(entries: Pick<CmsEntry, "id" | "title" | "body" | "subtitle" | "label">[]) {
+  const setting = entries.find((entry) => {
+    const key = `${entry.id} ${entry.title}`.toLowerCase();
+    return key.includes("expense") || key.includes("transparency_total_expenses");
+  });
+
+  if (!setting) return 0;
+  const value = setting.body || setting.subtitle || setting.label;
+  return toNumber(String(value).replace(/[^0-9.-]/g, ""));
+}
+
+function buildTransparencyResponse(
+  blocks: TransparencyBlock[],
+  cmsEntries: Pick<CmsEntry, "id" | "title" | "body" | "subtitle" | "label">[],
+): TransparencyData {
+  const totalVerifiedCollection = blocks.reduce(
+    (sum, block) => sum + block.totalAmount,
+    0,
+  );
+  const totalPayments = blocks.reduce((sum, block) => sum + block.totalPayments, 0);
+  const totalExpenses = getConfiguredExpenseTotal(cmsEntries);
+  const lastUpdated =
+    blocks
+      .map((block) => block.lastPaidAt)
+      .filter(Boolean)
+      .sort()
+      .at(-1) || "";
+
+  return {
+    blocks,
+    totals: {
+      verifiedCollection: totalVerifiedCollection,
+      totalPayments,
+      totalExpenses,
+      balanceAvailable: totalVerifiedCollection - totalExpenses,
+    },
+    totalVerifiedCollection,
+    totalPayments,
+    totalExpenses,
+    balanceAvailable: totalVerifiedCollection - totalExpenses,
+    lastUpdated,
+  };
+}
+
+function mapTransparencyBlock(row: DbTransparencyBlock): TransparencyBlock {
+  const totalPayments = toNumber(row.total_payments);
+  const totalAmount = toNumber(row.total_amount);
+  const lastPaidAt = row.last_paid_at
+    ? new Date(row.last_paid_at).toISOString()
+    : "";
+
+  return {
+    blockId: row.block_id,
+    blockName: row.block_name,
+    totalPayments,
+    totalAmount,
+    lastPaidAt,
+    block_id: row.block_id,
+    block_name: row.block_name,
+    total_payments: totalPayments,
+    total_amount: totalAmount,
+  };
+}
+
+function aggregateMemoryTransparency(data: DashboardData): TransparencyData {
+  const paidByBlock = new Map<string, Payment[]>();
+
+  for (const payment of data.payments) {
+    if (payment.status !== "paid") continue;
+    const items = paidByBlock.get(payment.blockId) || [];
+    items.push(payment);
+    paidByBlock.set(payment.blockId, items);
+  }
+
+  const blocks = data.blocks
+    .filter((block) => block.isActive)
+    .map((block) => {
+      const payments = paidByBlock.get(block.id) || [];
+      const lastPaidAt =
+        payments
+          .map((payment) => payment.paidAt || payment.createdAt)
+          .filter(Boolean)
+          .sort()
+          .at(-1) || "";
+
+      return mapTransparencyBlock({
+        block_id: block.id,
+        block_name: block.name,
+        total_payments: payments.length,
+        total_amount: payments.reduce((sum, payment) => sum + payment.amount, 0),
+        last_paid_at: lastPaidAt,
+      });
+    });
+
+  return buildTransparencyResponse(blocks, data.cmsEntries);
+}
+
 export async function getDashboardData(): Promise<DashboardData> {
   if (!hasDatabase()) {
     return { ...memory, totals: totals(memory) };
@@ -268,6 +381,52 @@ export async function getMobileBootstrap() {
   };
 
   await setCachedJson("mobile:bootstrap", response, 60);
+  return response;
+}
+
+export async function getTransparencyData(): Promise<TransparencyData> {
+  const cached = await getCachedJson<TransparencyData>("mobile:transparency");
+  if (cached) return cached;
+
+  if (!hasDatabase()) {
+    const response = aggregateMemoryTransparency({ ...memory, totals: totals(memory) });
+    await setCachedJson("mobile:transparency", response, 30);
+    return response;
+  }
+
+  const [blocks, settings] = await Promise.all([
+    query<DbTransparencyBlock>(
+      `select
+        b.id as block_id,
+        b.name as block_name,
+        count(p.id)::int as total_payments,
+        coalesce(sum(p.amount), 0)::int as total_amount,
+        max(coalesce(p.paid_at, p.created_at)) as last_paid_at
+       from blocks b
+       left join payments p on p.block_id = b.id and p.status = 'paid'
+       where b.is_active = true
+       group by b.id, b.name
+       order by b.name asc`,
+    ),
+    query<Pick<DbCms, "id" | "title" | "subtitle" | "body" | "label">>(
+      `select id, title, subtitle, body, label
+       from cms_entries
+       where section = 'app_setting' and is_published = true`,
+    ),
+  ]);
+
+  const response = buildTransparencyResponse(
+    blocks.rows.map(mapTransparencyBlock),
+    settings.rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      subtitle: row.subtitle,
+      body: row.body,
+      label: row.label,
+    })),
+  );
+
+  await setCachedJson("mobile:transparency", response, 30);
   return response;
 }
 
@@ -395,14 +554,18 @@ export async function updatePaymentStatus(
       payment.referenceId = referenceId;
       payment.paidAt = status === "paid" ? new Date().toISOString() : "";
     }
+    await clearMobileCache();
     return payment;
   }
 
   const result = await query(
-    `update payments
-     set status = $2, reference_id = $3, paid_at = case when $2 = 'paid' then coalesce(paid_at, now()) else paid_at end
-     where id = $1
-     returning email, resident_name, amount, block_name`,
+    `update payments p
+     set status = $2,
+         reference_id = $3,
+         paid_at = case when $2 = 'paid' then coalesce(p.paid_at, now()) else p.paid_at end
+     from blocks b
+     where p.id = $1 and b.id = p.block_id
+     returning p.email, p.resident_name, p.amount, b.name as block_name`,
     [id, status, referenceId],
   );
   await clearMobileCache();
@@ -453,6 +616,7 @@ export async function createPayment(input: {
 
   if (!hasDatabase()) {
     memory.payments.unshift(payment);
+    await clearMobileCache();
     return payment;
   }
 

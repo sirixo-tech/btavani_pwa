@@ -93,3 +93,30 @@ export type DashboardData = {
     volunteers: number;
   };
 };
+
+export type TransparencyBlock = {
+  blockId: string;
+  blockName: string;
+  totalPayments: number;
+  totalAmount: number;
+  lastPaidAt: string;
+  block_id: string;
+  block_name: string;
+  total_payments: number;
+  total_amount: number;
+};
+
+export type TransparencyData = {
+  blocks: TransparencyBlock[];
+  totals: {
+    verifiedCollection: number;
+    totalPayments: number;
+    totalExpenses: number;
+    balanceAvailable: number;
+  };
+  totalVerifiedCollection: number;
+  totalPayments: number;
+  totalExpenses: number;
+  balanceAvailable: number;
+  lastUpdated: string;
+};

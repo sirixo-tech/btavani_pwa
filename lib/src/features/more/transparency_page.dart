@@ -226,17 +226,20 @@ class TransparencyPayment {
     required this.residentName,
     required this.amount,
     required this.blockId,
+    required this.status,
   });
 
   final String residentName;
   final int amount;
   final String blockId;
+  final String status;
 
   factory TransparencyPayment.fromJson(Map<dynamic, dynamic> json) {
     return TransparencyPayment(
       residentName: _readString(json['residentName'] ?? json['resident_name']),
       amount: _readInt(json['amount']),
       blockId: _readString(json['blockId'] ?? json['block_id']),
+      status: _readString(json['status'], fallback: 'paid'),
     );
   }
 }
@@ -248,7 +251,10 @@ int _readInt(dynamic value) {
       0;
 }
 
-String _readString(dynamic value) => (value ?? '').toString().trim();
+String _readString(dynamic value, {String fallback = ''}) {
+  if (value == null) return fallback;
+  return value.toString().trim();
+}
 
 String _formatUpdatedAt(String value) {
   final date = DateTime.tryParse(value);
@@ -517,13 +523,60 @@ class _UserWiseList extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      payment.residentName,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          payment.residentName,
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (payment.status == 'pending')
+                          Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade100,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.amber.shade400),
+                            ),
+                            child: Text(
+                              'Pending',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.amber.shade900,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.green.shade200),
+                            ),
+                            child: Text(
+                              'Paid',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   Text(

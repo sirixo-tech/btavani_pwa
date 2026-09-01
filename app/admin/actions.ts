@@ -162,10 +162,8 @@ export async function updatePaymentAction(formData: FormData) {
     parsed.status as PaymentStatus,
     parsed.referenceId || "",
   );
-  revalidatePath("/admin");
   revalidatePath("/admin/payments");
   revalidatePath("/admin", "layout");
-  redirect("/admin/payments");
 }
 
 export async function createPaymentAction(formData: FormData) {

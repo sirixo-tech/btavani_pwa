@@ -255,6 +255,7 @@ function buildTransparencyResponse(
     totalExpenses,
     balanceAvailable: totalVerifiedCollection - totalExpenses,
     lastUpdated,
+    payments: [],
   };
 }
 

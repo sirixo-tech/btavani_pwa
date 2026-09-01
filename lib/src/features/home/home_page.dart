@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => _push(context, const TransparencyPage()),
                 ),
                 QuickActionCard(
-                  label: 'Volunteer',
+                  label: 'Volunteer Registration',
                   icon: Icons.diversity_3,
                   color: _leaf,
                   onTap: () => _push(context, const VolunteerPage()),

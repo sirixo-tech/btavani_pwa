@@ -62,7 +62,11 @@ class TulasiVanamApp extends StatelessWidget {
           labelLarge: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
-      home: const FestivalShell(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const FestivalShell(),
+        '/contribute': (context) => const FestivalShell(initialIndex: 2),
+      },
     );
   }
 }

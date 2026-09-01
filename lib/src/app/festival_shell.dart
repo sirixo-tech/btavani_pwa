@@ -1,14 +1,15 @@
 part of '../../main.dart';
 
 class FestivalShell extends StatefulWidget {
-  const FestivalShell({super.key});
+  const FestivalShell({this.initialIndex = 0, super.key});
+  final int initialIndex;
 
   @override
   State<FestivalShell> createState() => _FestivalShellState();
 }
 
 class _FestivalShellState extends State<FestivalShell> {
-  int _selectedIndex = 0;
+  late int _selectedIndex = widget.initialIndex;
 
   void _selectTab(int index) {
     setState(() => _selectedIndex = index);

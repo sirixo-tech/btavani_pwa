@@ -112,6 +112,7 @@ export type TransparencyData = {
     residentName: string;
     amount: number;
     blockId: string;
+    status: string;
     resident_name?: string;
     block_id?: string;
   }[];

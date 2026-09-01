@@ -228,6 +228,7 @@ function getConfiguredExpenseTotal(entries: Pick<CmsEntry, "id" | "title" | "bod
 function buildTransparencyResponse(
   blocks: TransparencyBlock[],
   cmsEntries: Pick<CmsEntry, "id" | "title" | "body" | "subtitle" | "label">[],
+  payments: { resident_name: string; amount: number; block_id: string; status?: string }[] = [],
 ): TransparencyData {
   const totalVerifiedCollection = blocks.reduce(
     (sum, block) => sum + block.totalAmount,
@@ -255,7 +256,12 @@ function buildTransparencyResponse(
     totalExpenses,
     balanceAvailable: totalVerifiedCollection - totalExpenses,
     lastUpdated,
-    payments: [],
+    payments: payments.map(p => ({
+      residentName: p.resident_name,
+      amount: p.amount,
+      blockId: p.block_id,
+      status: p.status || "paid",
+    })),
   };
 }
 
@@ -318,6 +324,7 @@ function aggregateMemoryTransparency(data: DashboardData): TransparencyData {
       blockId: p.blockId,
       resident_name: p.residentName,
       block_id: p.blockId,
+      status: p.status || "paid",
     }));
   return response;
 }
@@ -424,10 +431,10 @@ export async function getTransparencyData(): Promise<TransparencyData> {
        from cms_entries
        where section = 'app_setting' and is_published = true`,
     ),
-    query<{ resident_name: string; amount: number; block_id: string }>(
-      `select resident_name, amount, block_id
+    query<{ resident_name: string; amount: number; block_id: string; status: string }>(
+      `select resident_name, amount, block_id, status
        from payments
-       where status = 'paid'
+       where status in ('paid', 'pending')
        order by created_at desc`,
     ),
   ]);
@@ -441,18 +448,8 @@ export async function getTransparencyData(): Promise<TransparencyData> {
       body: row.body,
       label: row.label,
     })),
+    payments.rows
   );
-  
-  response.payments = [
-    // Database payments
-    ...payments.rows.map(row => ({
-      residentName: row.resident_name,
-      amount: row.amount,
-      blockId: row.block_id,
-      resident_name: row.resident_name,
-      block_id: row.block_id,
-    })),
-  ];
 
   await setCachedJson("mobile:transparency", response, 30);
   return response;
@@ -587,13 +584,12 @@ export async function updatePaymentStatus(
   }
 
   const result = await query(
-    `update payments p
+    `update payments
      set status = $2,
          reference_id = $3,
-         paid_at = case when $2 = 'paid' then coalesce(p.paid_at, now()) else p.paid_at end
-     from blocks b
-     where p.id = $1 and b.id = p.block_id
-     returning p.email, p.resident_name, p.amount, b.name as block_name`,
+         paid_at = case when $2 = 'paid' then coalesce(paid_at, now()) else paid_at end
+     where id = $1
+     returning email, resident_name, amount, (select name from blocks where id = payments.block_id) as block_name`,
     [id, status, referenceId],
   );
   await clearMobileCache();

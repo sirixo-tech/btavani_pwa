@@ -1,5 +1,6 @@
 import { getDashboardData } from "@/lib/repository";
 import { createPaymentAction, updatePaymentAction, deletePaymentAction } from "@/app/admin/actions";
+import { ScreenshotViewer } from "./ScreenshotViewer";
 
 function money(value: number) {
   return `Rs ${new Intl.NumberFormat("en-IN").format(value)}`;
@@ -51,9 +52,7 @@ export default async function PaymentsPage() {
                       </p>
                       <p className="text-xs text-zinc-500 mb-2">{payment.blockName} • {payment.flatNumber}</p>
                       {payment.screenshotUrl && (
-                        <a href={payment.screenshotUrl} target="_blank" rel="noopener noreferrer" className="inline-block border border-zinc-200 rounded p-1 hover:border-indigo-500 transition-colors bg-white">
-                          <img src={payment.screenshotUrl} alt="Payment Screenshot" className="h-16 w-auto object-contain rounded-sm" />
-                        </a>
+                        <ScreenshotViewer url={payment.screenshotUrl} />
                       )}
                     </td>
                     <td className="px-4 py-3 font-semibold text-zinc-900">{money(payment.amount)}</td>

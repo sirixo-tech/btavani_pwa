@@ -17,9 +17,9 @@ void main() {
     await tester.tap(find.text('Events').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Grand Cultural Evening'), findsOneWidget);
-    expect(find.text('Kids Activity and Competitions'), findsOneWidget);
-    expect(find.byIcon(Icons.event_note), findsOneWidget);
+    expect(find.text('Event Registration'), findsOneWidget);
+    expect(find.text('REGISTER'), findsOneWidget);
+    expect(find.text('Select Event'), findsOneWidget);
   });
 
   testWidgets('home quick actions open core screens', (tester) async {
@@ -33,6 +33,11 @@ void main() {
     await tester.tap(find.text('Announcements'));
     await tester.pumpAndSettle();
     expect(find.text('Water Supply Maintenance'), findsOneWidget);
+    await _goBack(tester);
+
+    await _tapQuickAction(tester, 'Collections');
+    await tester.pumpAndSettle();
+    expect(find.text('Collection Transparency'), findsOneWidget);
     await _goBack(tester);
 
     await tester.tap(find.text('Volunteer'));
@@ -69,7 +74,7 @@ void main() {
   testWidgets('gallery is simple and photo preview works', (tester) async {
     await _pumpFestivalApp(tester);
 
-    await _tapQuickAction(tester, 'Gallery');
+    await tester.tap(find.text('Gallery').last);
     await tester.pumpAndSettle();
 
     expect(find.text('Festival Moments'), findsOneWidget);
@@ -116,7 +121,7 @@ void main() {
 
     await tester.tap(find.text('Contribute').last);
     await tester.pumpAndSettle();
-    expect(find.text('Contribute to Avani Ganesh Utsav 2026'), findsOneWidget);
+    expect(find.text('Choose Contribution Amount'), findsOneWidget);
     expect(find.text('₹5,001'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
     await tester.pumpAndSettle();

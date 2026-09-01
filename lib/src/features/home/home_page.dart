@@ -11,6 +11,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Map<String, String>? _appSettings;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -24,10 +25,15 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           _appSettings = bootstrap.appSettings;
+          _isLoading = false;
         });
       }
     } catch (e) {
-      // Use defaults
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -41,10 +47,9 @@ class _HomePageState extends State<HomePage> {
           children: [
             HomeTopBar(
               onMenuTap: () => widget.onTabSelected(3),
-              appSettings: _appSettings,
             ),
             const SizedBox(height: 14),
-            BuildingHero(appSettings: _appSettings),
+            BuildingHero(appSettings: _appSettings, isLoading: _isLoading),
             const SizedBox(height: 20),
             Text(
               'Quick Access',
@@ -66,10 +71,10 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => widget.onTabSelected(2),
                 ),
                 QuickActionCard(
-                  label: 'Gallery',
-                  icon: Icons.photo_library,
+                  label: 'Collections',
+                  icon: Icons.account_balance_wallet,
                   color: _gold,
-                  onTap: () => _push(context, const GalleryPage()),
+                  onTap: () => _push(context, const TransparencyPage()),
                 ),
                 QuickActionCard(
                   label: 'Volunteer',
@@ -105,14 +110,12 @@ class _HomePageState extends State<HomePage> {
 }
 
 class HomeTopBar extends StatelessWidget {
-  const HomeTopBar({required this.onMenuTap, this.appSettings, super.key});
+  const HomeTopBar({required this.onMenuTap, super.key});
 
   final VoidCallback onMenuTap;
-  final Map<String, String>? appSettings;
 
   @override
   Widget build(BuildContext context) {
-    final logoUrl = appSettings?['app_logo'];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -121,15 +124,7 @@ class HomeTopBar extends StatelessWidget {
           onPressed: onMenuTap,
           icon: const Icon(Icons.menu),
         ),
-        logoUrl != null
-            ? Image.network(
-                logoUrl,
-                width: 140,
-                height: 50,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => _buildFallbackLogo(),
-              )
-            : _buildFallbackLogo(),
+        _buildLogo(),
         IconButton(
           tooltip: 'Notifications',
           onPressed: () => _push(context, const AnnouncementsPage()),
@@ -143,7 +138,7 @@ class HomeTopBar extends StatelessWidget {
     );
   }
 
-  Widget _buildFallbackLogo() {
+  Widget _buildLogo() {
     return Image.asset(
       'assets/images/btavani.png',
       width: 140,
@@ -218,9 +213,10 @@ class LotusPainter extends CustomPainter {
 }
 
 class BuildingHero extends StatelessWidget {
-  const BuildingHero({this.appSettings, super.key});
+  const BuildingHero({this.appSettings, this.isLoading = false, super.key});
 
   final Map<String, String>? appSettings;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -235,19 +231,22 @@ class BuildingHero extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              bannerUrl != null
-                  ? Image.network(
-                      bannerUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          CustomPaint(painter: BuildingScenePainter()),
-                    )
-                  : Image.asset(
-                      'assets/images/avani_building.jpg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          CustomPaint(painter: BuildingScenePainter()),
-                    ),
+              if (isLoading)
+                Container(color: _surfaceWarm)
+              else if (bannerUrl != null)
+                Image.network(
+                  bannerUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      CustomPaint(painter: BuildingScenePainter()),
+                )
+              else
+                Image.asset(
+                  'assets/images/avani_building.jpg',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      CustomPaint(painter: BuildingScenePainter()),
+                ),
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

@@ -13,7 +13,6 @@ class _ContributePageState extends State<ContributePage> {
   static const int minimumContributionAmount = 2000;
   static const int maximumContributionAmount = 99000;
   List<Block> _blocks = [];
-  Map<String, String>? _appSettings;
   bool _isLoadingBlocks = true;
 
   final _detailsFormKey = GlobalKey<FormState>();
@@ -28,18 +27,15 @@ class _ContributePageState extends State<ContributePage> {
   XFile? _screenshotFile;
 
   final List<ContributionAmountOption> amounts = const [
-    ContributionAmountOption(2001),
-    ContributionAmountOption(5001),
-    ContributionAmountOption(10001),
-    ContributionAmountOption(25001),
-    ContributionAmountOption(50001),
+    ContributionAmountOption(2500),
+    ContributionAmountOption(5000),
+    ContributionAmountOption(10000),
     ContributionAmountOption(null),
   ];
 
   int _currentStep = 0;
   int _selectedAmountIndex = 0;
   Block? _selectedBlock;
-  bool _paymentMarkedComplete = false;
   bool _isSubmitting = false;
 
   @override
@@ -54,7 +50,6 @@ class _ContributePageState extends State<ContributePage> {
       if (!mounted) return;
       setState(() {
         _blocks = bootstrap.blocks.isEmpty ? fallbackBlocks : bootstrap.blocks;
-        _appSettings = bootstrap.appSettings;
         if (_blocks.isNotEmpty) {
           _selectedBlock = _blocks.first;
         }
@@ -115,7 +110,7 @@ class _ContributePageState extends State<ContributePage> {
 
     if (!_validateStep(_currentStep)) return;
 
-    if (_currentStep == 5) {
+    if (_currentStep == 3) {
       setState(() => _isSubmitting = true);
       try {
         final api = EventApiService();
@@ -183,6 +178,16 @@ class _ContributePageState extends State<ContributePage> {
         return _detailsFormKey.currentState?.validate() ?? false;
       case 2:
         return _addressFormKey.currentState?.validate() ?? false;
+      case 3:
+        if (_utrController.text.trim().length < 8) {
+          _showSnack('Please enter a valid UTR / transaction ID.');
+          return false;
+        }
+        if (_screenshotFile == null) {
+          _showSnack('Please upload the payment screenshot.');
+          return false;
+        }
+        return true;
       default:
         return true;
     }
@@ -191,7 +196,6 @@ class _ContributePageState extends State<ContributePage> {
   void _editStep(int step) {
     setState(() {
       _currentStep = step;
-      _paymentMarkedComplete = false;
     });
   }
 
@@ -238,21 +242,6 @@ class _ContributePageState extends State<ContributePage> {
   }
 
   Widget _buildHeaderLogo() {
-    final logoUrl = _appSettings?['app_logo'];
-    if (logoUrl != null && logoUrl.isNotEmpty) {
-      return Image.network(
-        logoUrl,
-        width: 150,
-        height: 54,
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => _buildFallbackHeaderLogo(),
-      );
-    }
-
-    return _buildFallbackHeaderLogo();
-  }
-
-  Widget _buildFallbackHeaderLogo() {
     return Image.asset(
       'assets/images/btavani.png',
       width: 150,
@@ -348,36 +337,18 @@ class _ContributePageState extends State<ContributePage> {
                     },
                     validateRequired: _validateRequired,
                   ),
-                  3 => _BlockStep(
-                    blocks: _blocks.map((b) => b.name).toList(),
-                    selectedBlock: _selectedBlock?.name ?? '',
-                    onSelected: (block) {
-                      setState(
-                        () => _selectedBlock = _blocks.firstWhere(
-                          (b) => b.name == block,
-                        ),
-                      );
-                    },
-                  ),
-                  4 => _ReviewStep(
-                    amount: amount,
-                    name: _nameController.text,
-                    email: _emailController.text,
-                    phone: _phoneController.text,
-                    block: _selectedBlock?.name ?? '',
-                    flatNumber: _flatController.text,
-                    gotram: _gotramController.text,
-                    onEdit: _editStep,
-                  ),
                   _ => _PaymentStep(
                     amount: amount,
                     block: _selectedBlock?.name ?? '',
+                    name: _nameController.text,
+                    phone: _phoneController.text,
+                    flatNumber: _flatController.text,
                     upiId: _selectedUpiId,
                     qrImageUrl: _selectedQrImageUrl,
                     upiPayload: _upiUri.toString(),
-                    paymentMarkedComplete: _paymentMarkedComplete,
                     utrController: _utrController,
                     screenshotFileName: _screenshotFile?.name,
+                    onEdit: _editStep,
                     onPickScreenshot: () async {
                       final picker = ImagePicker();
                       final file = await picker.pickImage(
@@ -396,11 +367,7 @@ class _ContributePageState extends State<ContributePage> {
               height: 54,
               child: PrimaryButton(
                 label: switch (_currentStep) {
-                  4 => 'PROCEED TO PAYMENT',
-                  5 =>
-                    _paymentMarkedComplete
-                        ? 'PAYMENT COMPLETED'
-                        : 'I HAVE COMPLETED THE PAYMENT',
+                  3 => 'SUBMIT FOR VERIFICATION',
                   _ => 'CONTINUE',
                 },
                 isLoading: _isSubmitting,
@@ -435,8 +402,6 @@ class ContributionStepper extends StatelessWidget {
     'Amount',
     'Details',
     'Address',
-    'Block',
-    'Review',
     'Payment',
   ];
 
@@ -530,10 +495,10 @@ class _AmountStep extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
+            crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
-            childAspectRatio: 1.72,
+            childAspectRatio: 2.2,
           ),
           itemCount: amounts.length,
           itemBuilder: (context, index) {
@@ -693,172 +658,33 @@ class _AddressStep extends StatelessWidget {
   }
 }
 
-class _BlockStep extends StatelessWidget {
-  const _BlockStep({
-    required this.blocks,
-    required this.selectedBlock,
-    required this.onSelected,
-  });
-
-  final List<String> blocks;
-  final String selectedBlock;
-  final ValueChanged<String> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const _StepTitle(
-          title: 'Select Your Block',
-          subtitle: 'Please select your residential block.',
-        ),
-        const SizedBox(height: 22),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 2.65,
-          ),
-          itemCount: blocks.length,
-          itemBuilder: (context, index) {
-            final block = blocks[index];
-            final selected = block == selectedBlock;
-            return BlockButton(
-              label: block,
-              selected: selected,
-              onTap: () => onSelected(block),
-            );
-          },
-        ),
-        const SizedBox(height: 22),
-        const ContributionNotice(
-          icon: Icons.shield_outlined,
-          text:
-              'Your contribution will be sent to your respective Block Organizer.',
-        ),
-      ],
-    );
-  }
-}
-
-class _ReviewStep extends StatelessWidget {
-  const _ReviewStep({
-    required this.amount,
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.block,
-    required this.flatNumber,
-    required this.gotram,
-    required this.onEdit,
-  });
-
-  final int amount;
-  final String name;
-  final String email;
-  final String phone;
-  final String block;
-  final String flatNumber;
-  final String gotram;
-  final ValueChanged<int> onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = [
-      ReviewRowData(
-        icon: Icons.currency_rupee,
-        label: 'Amount',
-        value: '₹${formatIndianNumber(amount)}',
-        step: 0,
-      ),
-      ReviewRowData(
-        icon: Icons.person_outline,
-        label: 'Name',
-        value: name,
-        step: 1,
-      ),
-      ReviewRowData(
-        icon: Icons.mail_outline,
-        label: 'Email',
-        value: email,
-        step: 1,
-      ),
-      ReviewRowData(
-        icon: Icons.phone_outlined,
-        label: 'Phone',
-        value: '+91 $phone',
-        step: 1,
-      ),
-      ReviewRowData(
-        icon: Icons.apartment_outlined,
-        label: 'Block',
-        value: block,
-        step: 3,
-      ),
-      ReviewRowData(
-        icon: Icons.meeting_room_outlined,
-        label: 'Flat Number',
-        value: flatNumber.toUpperCase(),
-        step: 2,
-      ),
-      ReviewRowData(
-        icon: Icons.temple_hindu_outlined,
-        label: 'Gotram',
-        value: gotram.trim().isEmpty ? 'Not provided' : gotram,
-        step: 2,
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const _StepTitle(
-          title: 'Review & Confirm',
-          subtitle: 'Please review your details before proceeding to payment.',
-        ),
-        const SizedBox(height: 16),
-        Container(
-          decoration: panelDecoration(radius: 7, elevated: false),
-          child: Column(
-            children: [
-              for (var index = 0; index < rows.length; index++) ...[
-                ReviewRow(data: rows[index], onEdit: onEdit),
-                if (index != rows.length - 1)
-                  Divider(height: 1, color: _line.withValues(alpha: 0.75)),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _PaymentStep extends StatelessWidget {
   const _PaymentStep({
     required this.amount,
     required this.block,
+    required this.name,
+    required this.phone,
+    required this.flatNumber,
     required this.upiId,
     required this.qrImageUrl,
     required this.upiPayload,
-    required this.paymentMarkedComplete,
     required this.utrController,
     this.screenshotFileName,
+    required this.onEdit,
     required this.onPickScreenshot,
   });
 
   final int amount;
   final String block;
+  final String name;
+  final String phone;
+  final String flatNumber;
   final String upiId;
   final String qrImageUrl;
   final String upiPayload;
-  final bool paymentMarkedComplete;
   final TextEditingController utrController;
   final String? screenshotFileName;
+  final ValueChanged<int> onEdit;
   final VoidCallback onPickScreenshot;
 
   @override
@@ -866,60 +692,57 @@ class _PaymentStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const _StepTitle(
+          title: 'Payment Verification',
+          subtitle: 'Scan, pay, then submit your UTR and screenshot.',
+        ),
+        const SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [_maroon, _maroonDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(7),
-          ),
+          padding: const EdgeInsets.all(10),
+          decoration: panelDecoration(radius: 7, elevated: false),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.13),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.apartment_outlined,
-                  color: Colors.white,
-                  size: 34,
-                ),
+                width: 100,
+                height: 100,
+                padding: const EdgeInsets.all(4),
+                color: Colors.white,
+                child: qrImageUrl.isNotEmpty
+                    ? Image.network(
+                        qrImageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            QrImageView(
+                          data: upiPayload,
+                          version: QrVersions.auto,
+                          gapless: false,
+                        ),
+                      )
+                    : QrImageView(
+                        data: upiPayload,
+                        version: QrVersions.auto,
+                        gapless: false,
+                      ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'You are contributing to',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      block,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '₹${formatIndianNumber(amount)}',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
+                    _paymentDetail('Amount', '₹${formatIndianNumber(amount)}'),
+                    _paymentDetail('Block', block),
+                    _paymentDetail('Flat', flatNumber.toUpperCase()),
+                    if (upiId.isNotEmpty) _paymentDetail('UPI ID', upiId),
+                    TextButton.icon(
+                      onPressed: () => onEdit(2),
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: const Text('Edit details'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: _maroon,
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                   ],
@@ -928,86 +751,18 @@ class _PaymentStep extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-          decoration: panelDecoration(radius: 7, elevated: false),
-          child: Column(
-            children: [
-              const Text(
-                'Scan & Pay using any UPI App',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 3),
-              const Text(
-                '(Google Pay / PhonePe / Paytm / any UPI)',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _muted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(10),
-                color: Colors.white,
-                child: qrImageUrl.isNotEmpty
-                    ? Image.network(
-                        qrImageUrl,
-                        width: 220,
-                        height: 220,
-                        fit: BoxFit.contain,
-                      )
-                    : QrImageView(
-                        data: upiPayload,
-                        version: QrVersions.auto,
-                        size: 220,
-                        gapless: false,
-                        eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: Colors.black,
-                        ),
-                        dataModuleStyle: const QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.square,
-                          color: Colors.black,
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 14),
-              if (upiId.isNotEmpty)
-                Text(
-                  'UPI ID: $upiId',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: _ink,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 22),
-        const _StepTitle(
-          title: 'Have you completed the payment?',
-          subtitle: 'Please submit payment details for verification.',
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        _paymentDetail('Name', name),
+        const SizedBox(height: 6),
         ContributionTextField(
           label: 'UTR / Transaction ID *',
           hint: 'e.g. 123456789012',
           icon: Icons.tag,
           controller: utrController,
         ),
+        const SizedBox(height: 2),
+        const _FieldLabel('Screenshot *'),
         const SizedBox(height: 4),
-        const _FieldLabel('Screenshot (Optional)'),
-        const SizedBox(height: 8),
         InkWell(
           onTap: onPickScreenshot,
           borderRadius: BorderRadius.circular(7),
@@ -1039,20 +794,42 @@ class _PaymentStep extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         const ContributionNotice(
           icon: Icons.shield_outlined,
-          text: 'Your payment will be verified by your block volunteer.',
+          text: 'Tap Submit for Verification after uploading your proof.',
         ),
-        if (paymentMarkedComplete) ...[
-          const SizedBox(height: 12),
-          const ContributionNotice(
-            icon: Icons.check_circle_outline,
-            text:
-                'Thank you. Your payment completion has been noted on this device.',
+      ],
+    );
+  }
+
+  Widget _paymentDetail(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: _muted,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            value.isEmpty ? '-' : value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _ink,
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ],
-      ],
+      ),
     );
   }
 }

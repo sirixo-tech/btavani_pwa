@@ -67,6 +67,7 @@ class _GalleryPageState extends State<GalleryPage> {
   }
 
   Future<void> _handleUploadPressed(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     final picker = ImagePicker();
     final file = await picker.pickImage(
       source: ImageSource.gallery,
@@ -98,7 +99,7 @@ class _GalleryPageState extends State<GalleryPage> {
       if (!mounted) return;
 
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Image uploaded! Pending admin approval.'),
             backgroundColor: Color(0xFF4CAF50), // Fallback green or just remove _green
@@ -110,7 +111,7 @@ class _GalleryPageState extends State<GalleryPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Failed to upload image. Please try again.'),
             backgroundColor: Color(0xFFF44336), // Fallback red

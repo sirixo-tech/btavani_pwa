@@ -68,12 +68,12 @@ class _TransparencyPageState extends State<TransparencyPage> {
   @override
   Widget build(BuildContext context) {
     return DetailScaffold(
-      title: 'Transparency',
+      title: 'Collections',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Block-wise Collection',
+            'Collection Transparency',
             style: TextStyle(
               color: _ink,
               fontSize: 21,
@@ -82,7 +82,7 @@ class _TransparencyPageState extends State<TransparencyPage> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'A transparent view of collections across all blocks.',
+            'A simple block-wise view of verified contributions, pending entries, expenses and available balance.',
             style: TextStyle(
               color: _muted,
               fontSize: 13,
@@ -100,7 +100,7 @@ class _TransparencyPageState extends State<TransparencyPage> {
                   const _TransparencyNotice(
                     icon: Icons.cloud_off_outlined,
                     message:
-                        'Live collection data could not be loaded. Showing a safe empty fallback.',
+                        'Live data could not be refreshed. Showing available collection blocks until the connection is back.',
                   ),
                   const SizedBox(height: 14),
                 ],
@@ -405,28 +405,25 @@ class _BlockCollectionsCardState extends State<_BlockCollectionsCard> {
       (max, block) => block.totalAmount > max ? block.totalAmount : max,
     );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: panelDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Collection',
-                  style: TextStyle(
-                    color: _ink,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'Collections',
+                style: TextStyle(
+                  color: _ink,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
                 ),
               ),
-              SizedBox(
-                width: 180,
-                height: 36,
-                child: SegmentedPill(
+            ),
+            SizedBox(
+              width: 180,
+              height: 36,
+              child: SegmentedPill(
                   labels: const ['Blocks', 'Users'],
                   selectedIndex: _tab,
                   onChanged: (val) {
@@ -457,34 +454,33 @@ class _BlockCollectionsCardState extends State<_BlockCollectionsCard> {
             )
           else
             _UserWiseList(payments: widget.payments),
-          Container(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: _line)),
-            ),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'TOTAL',
-                    style: TextStyle(
-                      color: _maroonDark,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                Text(
-                  '₹${formatIndianNumber(widget.totalAmount)}',
-                  style: const TextStyle(
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          decoration: panelDecoration(elevated: true),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'TOTAL VERIFIED',
+                  style: TextStyle(
                     color: _maroonDark,
                     fontWeight: FontWeight.w900,
+                    fontSize: 16,
                   ),
                 ),
-              ],
-            ),
+              ),
+              Text(
+                '₹${formatIndianNumber(widget.totalAmount)}',
+                style: const TextStyle(
+                  color: _maroonDark,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -500,7 +496,7 @@ class _UserWiseList extends StatelessWidget {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20),
         child: Text(
-          'No user contributions found.',
+          'No resident contributions to show yet.',
           textAlign: TextAlign.center,
           style: TextStyle(color: _muted),
         ),
@@ -509,89 +505,116 @@ class _UserWiseList extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: _surfaceWarm.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: payments.map((payment) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          payment.residentName,
-                          style: const TextStyle(
-                            color: _ink,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (payment.status == 'pending')
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.amber.shade400),
-                            ),
-                            child: Text(
-                              'Pending',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.amber.shade900,
-                              ),
-                            ),
-                          )
-                        else
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.green.shade200),
-                            ),
-                            child: Text(
-                              'Paid',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.green.shade700,
-                              ),
-                            ),
-                          ),
-                      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: payments.map((payment) {
+          final initial = payment.residentName.trim().isNotEmpty
+              ? payment.residentName.trim().substring(0, 1).toUpperCase()
+              : '?';
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: panelDecoration(elevated: true),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [_gold, _maroon],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _gold.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '₹${formatIndianNumber(payment.amount)}',
+                  child: Text(
+                    initial,
                     style: const TextStyle(
-                      color: _leaf,
-                      fontSize: 14,
+                      color: Colors.white,
+                      fontSize: 18,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        payment.residentName,
+                        style: const TextStyle(
+                          color: _ink,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      if (payment.status == 'pending')
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.amber.shade200),
+                          ),
+                          child: Text(
+                            'Verification Pending',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.amber.shade800,
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Text(
+                            'Paid Verified',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '₹${formatIndianNumber(payment.amount)}',
+                  style: const TextStyle(
+                    color: _leaf,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -610,68 +633,90 @@ class _BlockCollectionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: _surfaceWarm,
-            borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: panelDecoration(elevated: true),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [_maroon, _maroonDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: _maroon.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.apartment_outlined, color: Colors.white, size: 24),
           ),
-          child: const Icon(Icons.apartment_outlined, color: _maroon),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      block.blockName,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 14,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        block.blockName,
+                        style: const TextStyle(
+                          color: _ink,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    '₹${formatIndianNumber(block.totalAmount)}',
-                    style: const TextStyle(
-                      color: _leaf,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
+                    Text(
+                      '₹${formatIndianNumber(block.totalAmount)}',
+                      style: const TextStyle(
+                        color: _leaf,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: progress.clamp(0, 1),
+                    minHeight: 8,
+                    backgroundColor: _line,
+                    valueColor: const AlwaysStoppedAnimation<Color>(_gold),
                   ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  block.totalPayments == 1
+                      ? '1 verified contribution'
+                      : '${block.totalPayments} verified contributions',
+                  style: const TextStyle(
+                    color: _muted,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                  ),
+                ),
+                if (payments.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  _PaymentsList(payments: payments),
                 ],
-              ),
-              const SizedBox(height: 5),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: LinearProgressIndicator(
-                  value: progress.clamp(0, 1),
-                  minHeight: 6,
-                  backgroundColor: _line,
-                  valueColor: const AlwaysStoppedAnimation<Color>(_gold),
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                '${block.totalPayments} verified contributions',
-                style: const TextStyle(
-                  color: _muted,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11,
-                ),
-              ),
-              _PaymentsList(payments: payments),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -721,7 +766,7 @@ class _PaymentsList extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF3DE).withOpacity(0.5),
+          color: const Color(0xFFFFF3DE).withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -758,4 +803,3 @@ class _PaymentsList extends StatelessWidget {
     );
   }
 }
-

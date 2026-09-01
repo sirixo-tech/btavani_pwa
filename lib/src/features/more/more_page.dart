@@ -37,8 +37,8 @@ class MorePage extends StatelessWidget {
             ),
             MenuTile(
               icon: Icons.account_balance_wallet,
-              title: 'Transparency',
-              subtitle: 'Block-wise collection and expenses',
+              title: 'Collections',
+              subtitle: 'Block-wise verified collection and expenses',
               onTap: () => _push(context, const TransparencyPage()),
             ),
             MenuTile(

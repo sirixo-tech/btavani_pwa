@@ -175,7 +175,7 @@ class _GalleryPageState extends State<GalleryPage> {
                 width: metrics.buttonWidth,
                 child: PrimaryButton(
                   label: _isUploading ? 'UPLOADING...' : 'UPLOAD PHOTO',
-                  onPressed: _isUploading ? null : () => _handleUploadPressed(context),
+                  onPressed: _isUploading ? () {} : () => _handleUploadPressed(context),
                 ),
               ),
             ],

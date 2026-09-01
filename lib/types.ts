@@ -27,6 +27,7 @@ export type Payment = {
   provider: PaymentProvider;
   status: PaymentStatus;
   referenceId: string;
+  screenshotUrl: string;
   createdAt: string;
   paidAt: string;
 };

@@ -43,6 +43,7 @@ type DbPayment = {
   provider: PaymentProvider;
   status: PaymentStatus;
   reference_id: string;
+  screenshot_url: string;
   created_at: string;
   paid_at: string | null;
 };
@@ -123,6 +124,7 @@ function mapPayment(row: DbPayment): Payment {
     provider: row.provider,
     status: row.status,
     referenceId: row.reference_id,
+    screenshotUrl: row.screenshot_url,
     createdAt: row.created_at,
     paidAt: row.paid_at || "",
   };
@@ -424,6 +426,7 @@ export async function createPayment(input: {
   provider?: PaymentProvider;
   status?: PaymentStatus;
   referenceId?: string;
+  screenshotUrl?: string;
 }) {
   const block = (await getDashboardData()).blocks.find(
     (item) => item.id === input.blockId || item.name === input.blockId,
@@ -443,6 +446,7 @@ export async function createPayment(input: {
     provider: input.provider || block.paymentProvider,
     status: input.status || "pending",
     referenceId: input.referenceId || "",
+    screenshotUrl: input.screenshotUrl || "",
     createdAt: new Date().toISOString(),
     paidAt: input.status === "paid" ? new Date().toISOString() : "",
   };
@@ -454,8 +458,8 @@ export async function createPayment(input: {
 
   await query(
     `insert into payments
-      (id, amount, block_id, resident_name, email, phone, flat_number, gotram, provider, status, reference_id, paid_at)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+      (id, amount, block_id, resident_name, email, phone, flat_number, gotram, provider, status, reference_id, screenshot_url, paid_at)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
     [
       payment.id,
       payment.amount,
@@ -468,6 +472,7 @@ export async function createPayment(input: {
       payment.provider,
       payment.status,
       payment.referenceId,
+      payment.screenshotUrl,
       payment.paidAt || null,
     ],
   );

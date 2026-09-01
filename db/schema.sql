@@ -42,6 +42,7 @@ create table if not exists payments (
   provider text not null default 'upi_qr',
   status text not null default 'pending',
   reference_id text not null default '',
+  screenshot_url text not null default '',
   created_at timestamptz not null default now(),
   paid_at timestamptz
 );

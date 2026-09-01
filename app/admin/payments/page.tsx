@@ -46,7 +46,14 @@ export default async function PaymentsPage() {
                 {data.payments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-zinc-50/50">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-zinc-900">{payment.residentName}</p>
+                      <p className="font-semibold text-zinc-900">
+                        {payment.residentName}
+                        {payment.screenshotUrl && (
+                          <a href={payment.screenshotUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-indigo-600 hover:text-indigo-900 text-xs font-normal">
+                            (View Screenshot)
+                          </a>
+                        )}
+                      </p>
                       <p className="text-xs text-zinc-500">{payment.blockName} • {payment.flatNumber}</p>
                     </td>
                     <td className="px-4 py-3 font-semibold text-zinc-900">{money(payment.amount)}</td>

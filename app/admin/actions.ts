@@ -73,7 +73,7 @@ export async function saveBlockAction(prevState: unknown, formData: FormData) {
 
   const parsed = z
     .object({
-      id: z.string().min(1),
+      id: z.string().optional(),
       name: z.string().min(1),
       organizerName: z.string().optional(),
       organizerPhone: z.string().optional(),
@@ -85,7 +85,7 @@ export async function saveBlockAction(prevState: unknown, formData: FormData) {
       isActive: z.boolean(),
     })
     .parse({
-      id: text(formData, "id"),
+      id: text(formData, "id") || crypto.randomUUID(),
       name: text(formData, "name"),
       organizerName: text(formData, "organizerName"),
       organizerPhone: text(formData, "organizerPhone"),

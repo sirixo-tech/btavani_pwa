@@ -18,8 +18,18 @@ export default async function BlocksPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2 2xl:grid-cols-3">
+        {/* Create New Block */}
+        <div className="flex flex-col">
+          <h3 className="mb-4 text-sm font-semibold text-zinc-900 border-b pb-2">Create New Block</h3>
+          <BlockForm block={{ id: "", name: "", organizerName: "", organizerPhone: "", upiId: "", qrImageUrl: "", paymentProvider: "upi_qr", razorpayKeyId: "", razorpayLink: "", isActive: true }} />
+        </div>
+        
+        {/* Existing Blocks */}
         {data.blocks.map((block) => (
-          <BlockForm key={block.id} block={block} />
+          <div key={block.id} className="flex flex-col">
+            <h3 className="mb-4 text-sm font-semibold text-zinc-900 border-b pb-2">Edit: {block.name}</h3>
+            <BlockForm block={block} />
+          </div>
         ))}
       </div>
     </>

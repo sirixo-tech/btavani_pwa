@@ -56,6 +56,7 @@ async function seedDatabase() {
 
   try {
     await client.query("begin");
+    await client.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS screenshot_url TEXT NOT NULL DEFAULT '';");
 
     for (const block of seedBlocks) {
       await client.query(

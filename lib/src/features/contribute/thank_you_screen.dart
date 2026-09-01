@@ -3,11 +3,13 @@ part of '../../../main.dart';
 class ThankYouScreen extends StatelessWidget {
   final Map<String, dynamic> paymentData;
   final VoidCallback onBackToHome;
+  final VoidCallback onViewTracker;
 
   const ThankYouScreen({
     super.key,
     required this.paymentData,
     required this.onBackToHome,
+    required this.onViewTracker,
   });
 
   @override
@@ -138,6 +140,26 @@ class ThankYouScreen extends StatelessWidget {
                 ),
                 child: const Text(
                   'BACK TO HOME',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: onViewTracker,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF8E1119),
+                  side: const BorderSide(color: Color(0xFF8E1119), width: 1.5),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'VIEW CONTRIBUTION TRACKER',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,

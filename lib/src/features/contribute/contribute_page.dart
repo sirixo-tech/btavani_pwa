@@ -128,12 +128,74 @@ class _ContributePageState extends State<ContributePage> {
         );
         if (!mounted) return;
         
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0.5, end: 1.0),
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.elasticOut,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.withOpacity(0.5),
+                              blurRadius: 40,
+                              spreadRadius: 10,
+                            )
+                          ]
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/ganesha_contribute.jpg',
+                            width: 150,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'May Lord Ganesha Bless You!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+
+        if (!mounted) return;
+        Navigator.pop(context); // close dialog
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => ThankYouScreen(
               paymentData: response,
               onBackToHome: widget.onBackToHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst),
+              onViewTracker: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const TransparencyPage()));
+              },
             ),
           ),
         );

@@ -103,6 +103,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+            const ContributionTrackerCard(),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -559,6 +562,204 @@ class FestivalRibbon extends StatelessWidget {
           fontWeight: FontWeight.w900,
           letterSpacing: 0,
         ),
+      ),
+    );
+  }
+}
+
+class ContributionTrackerCard extends StatelessWidget {
+  const ContributionTrackerCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFDF5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF2E6CD)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('💰', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Ganesh Utsav Contribution Tracker',
+                  style: TextStyle(
+                    color: Color(0xFF8E1119),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '₹ 12,48,500',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Total Contributions Received',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Column(
+                  children: [
+                    Text(
+                      '62%',
+                      style: TextStyle(
+                        color: Color(0xFF2E7D32),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      'of Target',
+                      style: TextStyle(
+                        color: Color(0xFF2E7D32),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: 0.62,
+              backgroundColor: Colors.grey[300],
+              color: const Color(0xFF2E7D32),
+              minHeight: 8,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.family_restroom, size: 20, color: Color(0xFFCCA716)),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '1,247',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Text(
+                          'Families Contributed',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(width: 1, height: 30, color: Colors.grey[300]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.access_time, size: 20, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Today, 7:30 PM',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 12,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Text(
+                          'Last Updated',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton(
+              onPressed: () => _push(context, const TransparencyPage()),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF8E1119),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'VIEW FULL DETAILS',
+                    style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_ios, size: 14),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

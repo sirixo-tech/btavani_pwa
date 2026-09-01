@@ -162,7 +162,10 @@ export async function updatePaymentAction(formData: FormData) {
     parsed.status as PaymentStatus,
     parsed.referenceId || "",
   );
+  revalidatePath("/admin");
+  revalidatePath("/admin/payments");
   revalidatePath("/admin", "layout");
+  redirect("/admin/payments");
 }
 
 export async function createPaymentAction(formData: FormData) {
@@ -210,6 +213,19 @@ export async function deleteCmsAction(formData: FormData) {
   const id = text(formData, "id");
   if (id) {
     await deleteCmsEntry(id);
+    revalidatePath("/admin/events");
+    revalidatePath("/admin/content");
+  }
+}
+
+export async function publishCmsAction(formData: FormData) {
+  await requireAdmin();
+  const id = text(formData, "id");
+  if (id) {
+    const { query } = await import("@/lib/db");
+    const { clearMobileCache } = await import("@/lib/cache");
+    await query("update cms_entries set is_published = true where id = $1", [id]);
+    await clearMobileCache();
     revalidatePath("/admin/events");
     revalidatePath("/admin/content");
   }

@@ -1,5 +1,5 @@
 import { getDashboardData } from "@/lib/repository";
-import { saveCmsAction, deleteCmsAction } from "@/app/admin/actions";
+import { saveCmsAction, deleteCmsAction, publishCmsAction } from "@/app/admin/actions";
 import { ImageUploader } from "@/app/components/admin/ImageUploader";
 
 export default async function ContentPage() {
@@ -40,12 +40,23 @@ export default async function ContentPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between">
                           <h4 className="text-sm font-semibold text-zinc-900 truncate">{entry.title}</h4>
-                          <form action={deleteCmsAction}>
-                            <input type="hidden" name="id" value={entry.id} />
-                            <button className="text-xs text-red-600 hover:text-red-500 font-medium">Delete</button>
-                          </form>
+                          <div className="flex gap-2">
+                            {!entry.isPublished && (
+                              <form action={publishCmsAction}>
+                                <input type="hidden" name="id" value={entry.id} />
+                                <button className="text-xs text-indigo-600 hover:text-indigo-500 font-medium">Approve</button>
+                              </form>
+                            )}
+                            <form action={deleteCmsAction}>
+                              <input type="hidden" name="id" value={entry.id} />
+                              <button className="text-xs text-red-600 hover:text-red-500 font-medium">Delete</button>
+                            </form>
+                          </div>
                         </div>
-                        <p className="text-xs text-zinc-500 mt-1 truncate">{entry.subtitle || entry.label}</p>
+                        <p className="text-xs text-zinc-500 mt-1 truncate">
+                          {entry.subtitle || entry.label}
+                          {!entry.isPublished && <span className="ml-2 inline-flex items-center rounded-md bg-yellow-50 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">Pending</span>}
+                        </p>
                         <p className="text-xs text-zinc-600 mt-2 line-clamp-2">{entry.body}</p>
                       </div>
                     </div>

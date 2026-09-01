@@ -2,6 +2,8 @@ import { getDashboardData } from "@/lib/repository";
 import { createPaymentAction, updatePaymentAction, deletePaymentAction } from "@/app/admin/actions";
 import { ScreenshotViewer } from "./ScreenshotViewer";
 
+export const dynamic = "force-dynamic";
+
 function money(value: number) {
   return `Rs ${new Intl.NumberFormat("en-IN").format(value)}`;
 }
@@ -66,7 +68,7 @@ export default async function PaymentsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <form action={updatePaymentAction} className="flex flex-wrap gap-2 items-center">
+                      <form action={updatePaymentAction} className="flex flex-wrap gap-2 items-center" key={`${payment.id}-${payment.status}-${payment.referenceId}`}>
                         <input type="hidden" name="id" value={payment.id} />
                         <select name="status" defaultValue={payment.status} className="block rounded-md border-0 py-1 pl-3 pr-8 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:ring-2 focus:ring-indigo-600 sm:text-xs">
                           {statuses.map(s => <option key={s} value={s}>{s}</option>)}

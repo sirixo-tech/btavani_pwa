@@ -450,12 +450,6 @@ class _ContributePageState extends State<ContributePage> {
               ),
             ),
             const SizedBox(height: 16),
-            const ContributionNotice(
-              icon: Icons.shield_outlined,
-              text:
-                  'Every contribution, big or small, makes a big difference.\nThank you.',
-            ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -775,32 +769,6 @@ class _PaymentStep extends StatelessWidget {
       children: [
         const SizedBox(height: 16),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFFFECB3)),
-          ),
-          child: const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.info_outline, color: Color(0xFFF57F17), size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'After payment, you need to upload the payment screenshot below to complete the process.',
-                  style: TextStyle(
-                    color: Color(0xFFF57F17),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
         const Center(
           child: Text(
             'SCAN TO PAY',
@@ -815,8 +783,8 @@ class _PaymentStep extends StatelessWidget {
         const SizedBox(height: 16),
         Center(
           child: Container(
-            width: 240,
-            height: 240,
+            width: 280,
+            height: 280,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -892,15 +860,34 @@ class _PaymentStep extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF8E1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFFFECB3)),
+          ),
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline, color: Color(0xFFF57F17), size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'After payment, you need to upload the payment screenshot below to complete the process.',
+                  style: TextStyle(
+                    color: Color(0xFFF57F17),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
         const Divider(color: _line),
         const SizedBox(height: 16),
-        ContributionTextField(
-          label: 'Mobile Number *',
-          hint: 'Enter mobile number',
-          icon: Icons.phone_outlined,
-          controller: TextEditingController(text: phone), // Pass phone
-          readOnly: true,
-        ),
         ContributionTextField(
           label: 'UTR / Transaction ID *',
           hint: 'e.g. 123456789012',
@@ -952,36 +939,6 @@ class _PaymentStep extends StatelessWidget {
           text: 'Please upload the screenshot after making the payment.',
         ),
       ],
-    );
-  }
-
-  Widget _paymentDetail(String label, String value, {bool alignRight = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Column(
-        crossAxisAlignment: alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: _muted,
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value.isEmpty ? '-' : value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _ink,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

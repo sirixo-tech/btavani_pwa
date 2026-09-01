@@ -72,7 +72,67 @@ class MorePage extends StatelessWidget {
               subtitle: 'Support Avani Ganesh Utsav 2026',
               onTap: () => onTabSelected(2),
             ),
+            MenuTile(
+              icon: Icons.contact_phone,
+              title: 'Contact Us',
+              subtitle: 'Committee members and support contacts',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CommitteeImagePage()),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Center(
+              child: GestureDetector(
+                onTap: () async {
+                  final url = Uri.parse('https://sirixo.com');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url);
+                  }
+                },
+                child: const Text(
+                  'Powered by SIRIXO',
+                  style: TextStyle(
+                    color: _maroon,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class CommitteeImagePage extends StatelessWidget {
+  const CommitteeImagePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+        title: const Text(
+          'Committee Members',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: InteractiveViewer(
+        minScale: 1.0,
+        maxScale: 4.0,
+        child: Center(
+          child: Image.asset(
+            'assets/images/committee.jpg',
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );

@@ -39,6 +39,7 @@ dependencies:
   image_picker: ^1.2.3
   cached_network_image: ^3.4.1
   intl: ^0.20.3
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

@@ -48,13 +48,13 @@ export default async function PaymentsPage() {
                     <td className="px-4 py-3">
                       <p className="font-semibold text-zinc-900">
                         {payment.residentName}
-                        {payment.screenshotUrl && (
-                          <a href={payment.screenshotUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-indigo-600 hover:text-indigo-900 text-xs font-normal">
-                            (View Screenshot)
-                          </a>
-                        )}
                       </p>
-                      <p className="text-xs text-zinc-500">{payment.blockName} • {payment.flatNumber}</p>
+                      <p className="text-xs text-zinc-500 mb-2">{payment.blockName} • {payment.flatNumber}</p>
+                      {payment.screenshotUrl && (
+                        <a href={payment.screenshotUrl} target="_blank" rel="noopener noreferrer" className="inline-block border border-zinc-200 rounded p-1 hover:border-indigo-500 transition-colors bg-white">
+                          <img src={payment.screenshotUrl} alt="Payment Screenshot" className="h-16 w-auto object-contain rounded-sm" />
+                        </a>
+                      )}
                     </td>
                     <td className="px-4 py-3 font-semibold text-zinc-900">{money(payment.amount)}</td>
                     <td className="px-4 py-3">

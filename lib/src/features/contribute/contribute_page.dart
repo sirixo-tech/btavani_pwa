@@ -191,9 +191,18 @@ class _ContributePageState extends State<ContributePage> {
           MaterialPageRoute(
             builder: (context) => ThankYouScreen(
               paymentData: response,
-              onBackToHome: widget.onBackToHome ?? () => Navigator.of(context).popUntil((route) => route.isFirst),
+              onBackToHome: widget.onBackToHome ?? () => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const FestivalShell()),
+                (route) => false,
+              ),
               onViewTracker: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FestivalShell()),
+                  (route) => false,
+                );
+                // Also push transparency
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const TransparencyPage()));
               },
             ),
@@ -841,6 +850,33 @@ class _PaymentStep extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF8E1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFFFECB3)),
+          ),
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline, color: Color(0xFFF57F17), size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'After payment, you need to upload the payment screenshot below to complete the process.',
+                  style: TextStyle(
+                    color: Color(0xFFF57F17),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
         const Center(
           child: Text(
             'SCAN TO PAY',
@@ -884,32 +920,6 @@ class _PaymentStep extends StatelessWidget {
                     version: QrVersions.auto,
                     gapless: false,
                   ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFFFECB3)),
-          ),
-          child: const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.info_outline, color: Color(0xFFF57F17), size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'After payment, you need to upload the payment screenshot below to complete the process.',
-                  style: TextStyle(
-                    color: Color(0xFFF57F17),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
         const SizedBox(height: 24),

@@ -14,15 +14,17 @@ class ThankYouScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amount = paymentData['amount'] ?? 0;
-    final date = paymentData['createdAt'] != null
-        ? DateFormat('dd MMM yyyy, h:mm a').format(DateTime.parse(paymentData['createdAt']))
+    final payload = paymentData['payment'] ?? paymentData;
+    
+    final amount = payload['amount'] ?? 0;
+    final date = payload['createdAt'] != null
+        ? DateFormat('dd MMM yyyy, h:mm a').format(DateTime.parse(payload['createdAt']))
         : DateFormat('dd MMM yyyy, h:mm a').format(DateTime.now());
-    final receiptNumber = paymentData['receiptNumber'] ?? '-';
-    final blockName = paymentData['blockName'] ?? '-';
-    final status = paymentData['status'] == 'paid' ? 'Success' : 'Pending Verification';
-    final name = paymentData['residentName'] ?? '-';
-    final phone = paymentData['phone'] ?? '-';
+    final receiptNumber = payload['receiptNumber'] ?? '-';
+    final blockName = payload['blockName'] ?? '-';
+    final status = payload['status'] == 'paid' ? 'Success' : 'Pending Verification';
+    final name = payload['residentName'] ?? '-';
+    final phone = payload['phone'] ?? '-';
 
     return Stack(
       children: [

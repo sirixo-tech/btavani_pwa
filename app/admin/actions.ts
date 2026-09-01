@@ -73,7 +73,7 @@ export async function saveBlockAction(prevState: unknown, formData: FormData) {
 
   const parsed = z
     .object({
-      id: z.string().optional(),
+      id: z.string(),
       name: z.string().min(1),
       organizerName: z.string().optional(),
       organizerPhone: z.string().optional(),

@@ -101,7 +101,7 @@ class EventApiService {
     }
   }
 
-  Future<void> submitPayment({
+  Future<Map<String, dynamic>> submitPayment({
     required int amount,
     required String blockId,
     required String residentName,
@@ -139,9 +139,10 @@ class EventApiService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
       
-      if (response.statusCode != 201) {
+      if (response.statusCode != 201 && response.statusCode != 200) {
         throw Exception('Failed to submit payment. Status code: ${response.statusCode}');
       }
+      return json.decode(response.body);
     } else {
       final response = await http.post(
         url,
@@ -159,9 +160,10 @@ class EventApiService {
           'referenceId': utr,
         }),
       );
-      if (response.statusCode != 201) {
+      if (response.statusCode != 201 && response.statusCode != 200) {
         throw Exception('Failed to submit payment');
       }
+      return json.decode(response.body);
     }
   }
 

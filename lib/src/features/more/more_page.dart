@@ -72,8 +72,34 @@ class MorePage extends StatelessWidget {
   }
 }
 
-class BrandMiniHeader extends StatelessWidget {
+class BrandMiniHeader extends StatefulWidget {
   const BrandMiniHeader({super.key});
+
+  @override
+  State<BrandMiniHeader> createState() => _BrandMiniHeaderState();
+}
+
+class _BrandMiniHeaderState extends State<BrandMiniHeader> {
+  String? _appLogoUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      final bootstrap = await EventApiService().fetchBootstrap();
+      if (mounted) {
+        setState(() {
+          _appLogoUrl = bootstrap.appSettings['app_logo'];
+        });
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,11 +120,22 @@ class BrandMiniHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Image.asset(
-        'assets/images/btavani.png',
-        height: 86,
-        fit: BoxFit.contain,
-      ),
+      child: _appLogoUrl != null && _appLogoUrl!.isNotEmpty
+          ? CachedNetworkImage(
+              imageUrl: _appLogoUrl!,
+              height: 86,
+              fit: BoxFit.contain,
+              errorWidget: (context, url, error) => Image.asset(
+                'assets/images/btavani.png',
+                height: 86,
+                fit: BoxFit.contain,
+              ),
+            )
+          : Image.asset(
+              'assets/images/btavani.png',
+              height: 86,
+              fit: BoxFit.contain,
+            ),
     );
   }
 }

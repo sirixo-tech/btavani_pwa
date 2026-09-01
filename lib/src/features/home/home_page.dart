@@ -47,6 +47,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             HomeTopBar(
               onMenuTap: () => widget.onTabSelected(3),
+              appSettings: _appSettings,
             ),
             const SizedBox(height: 14),
             BuildingHero(appSettings: _appSettings, isLoading: _isLoading),
@@ -110,9 +111,10 @@ class _HomePageState extends State<HomePage> {
 }
 
 class HomeTopBar extends StatelessWidget {
-  const HomeTopBar({required this.onMenuTap, super.key});
+  const HomeTopBar({required this.onMenuTap, this.appSettings, super.key});
 
   final VoidCallback onMenuTap;
+  final Map<String, String>? appSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -139,6 +141,21 @@ class HomeTopBar extends StatelessWidget {
   }
 
   Widget _buildLogo() {
+    final logoUrl = appSettings?['app_logo'];
+    if (logoUrl != null && logoUrl.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: logoUrl,
+        width: 140,
+        height: 50,
+        fit: BoxFit.contain,
+        errorWidget: (context, url, error) => Image.asset(
+          'assets/images/btavani.png',
+          width: 140,
+          height: 50,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
     return Image.asset(
       'assets/images/btavani.png',
       width: 140,

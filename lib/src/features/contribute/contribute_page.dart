@@ -14,6 +14,7 @@ class _ContributePageState extends State<ContributePage> {
   static const int maximumContributionAmount = 99000;
   List<Block> _blocks = [];
   bool _isLoadingBlocks = true;
+  String? _appLogoUrl;
 
   final _detailsFormKey = GlobalKey<FormState>();
   final _addressFormKey = GlobalKey<FormState>();
@@ -27,9 +28,9 @@ class _ContributePageState extends State<ContributePage> {
   XFile? _screenshotFile;
 
   final List<ContributionAmountOption> amounts = const [
-    ContributionAmountOption(2500),
-    ContributionAmountOption(5000),
-    ContributionAmountOption(10000),
+    ContributionAmountOption(2116),
+    ContributionAmountOption(5116),
+    ContributionAmountOption(10116),
     ContributionAmountOption(null),
   ];
 
@@ -50,16 +51,13 @@ class _ContributePageState extends State<ContributePage> {
       if (!mounted) return;
       setState(() {
         _blocks = bootstrap.blocks.isEmpty ? fallbackBlocks : bootstrap.blocks;
-        if (_blocks.isNotEmpty) {
-          _selectedBlock = _blocks.first;
-        }
+        _appLogoUrl = bootstrap.appSettings['app_logo'];
         _isLoadingBlocks = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _blocks = fallbackBlocks;
-        _selectedBlock = fallbackBlocks.first;
         _isLoadingBlocks = false;
       });
     }
@@ -114,7 +112,7 @@ class _ContributePageState extends State<ContributePage> {
       setState(() => _isSubmitting = true);
       try {
         final api = EventApiService();
-        await api.submitPayment(
+        final response = await api.submitPayment(
           amount: _selectedAmount ?? amounts.first.amount!,
           blockId: _selectedBlock?.id ?? '',
           residentName: _nameController.text.trim(),
@@ -129,14 +127,16 @@ class _ContributePageState extends State<ContributePage> {
           screenshotName: _screenshotFile?.name,
         );
         if (!mounted) return;
-        _showSnack('Payment marked complete. Thank you for contributing.');
-
-        // Navigate to home page
-        if (widget.onBackToHome != null) {
-          widget.onBackToHome?.call();
-        } else if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
+        
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ThankYouScreen(
+              paymentData: response,
+              onBackToHome: widget.onBackToHome ?? () => Navigator.pop(context),
+            ),
+          ),
+        );
       } catch (e) {
         if (!mounted) return;
         _showSnack('Failed to record payment: $e');
@@ -242,6 +242,20 @@ class _ContributePageState extends State<ContributePage> {
   }
 
   Widget _buildHeaderLogo() {
+    if (_appLogoUrl != null && _appLogoUrl!.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: _appLogoUrl!,
+        width: 150,
+        height: 54,
+        fit: BoxFit.contain,
+        errorWidget: (context, url, error) => Image.asset(
+          'assets/images/btavani.png',
+          width: 150,
+          height: 54,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
     return Image.asset(
       'assets/images/btavani.png',
       width: 150,
@@ -350,12 +364,31 @@ class _ContributePageState extends State<ContributePage> {
                     screenshotFileName: _screenshotFile?.name,
                     onEdit: _editStep,
                     onPickScreenshot: () async {
-                      final picker = ImagePicker();
-                      final file = await picker.pickImage(
-                        source: ImageSource.gallery,
+                      final source = await showModalBottomSheet<ImageSource>(
+                        context: context,
+                        builder: (ctx) => SafeArea(
+                          child: Wrap(
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.camera_alt),
+                                title: const Text('Camera'),
+                                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.photo_library),
+                                title: const Text('Gallery'),
+                                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
-                      if (file != null) {
-                        setState(() => _screenshotFile = file);
+                      if (source != null) {
+                        final picker = ImagePicker();
+                        final file = await picker.pickImage(source: source);
+                        if (file != null) {
+                          setState(() => _screenshotFile = file);
+                        }
                       }
                     },
                   ),
@@ -605,7 +638,7 @@ class _AddressStep extends StatelessWidget {
 
   final GlobalKey<FormState> formKey;
   final List<String> blocks;
-  final String selectedBlock;
+  final String? selectedBlock;
   final TextEditingController flatController;
   final TextEditingController gotramController;
   final ValueChanged<String> onBlockChanged;
@@ -626,13 +659,19 @@ class _AddressStep extends StatelessWidget {
           const _FieldLabel('Block *'),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            initialValue: selectedBlock,
+            value: selectedBlock,
             items: [
               for (final block in blocks)
                 DropdownMenuItem(value: block, child: Text(block)),
             ],
             onChanged: (value) {
               if (value != null) onBlockChanged(value);
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select your block.';
+              }
+              return null;
             },
             decoration: contributionInputDecoration(hint: 'Select Block'),
           ),
@@ -692,122 +731,213 @@ class _PaymentStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _StepTitle(
-          title: 'Payment Verification',
-          subtitle: 'Scan, pay, then submit your UTR and screenshot.',
+        const Center(
+          child: Text(
+            'CONTRIBUTION',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+              color: _maroon,
+            ),
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.all(10),
-          decoration: panelDecoration(radius: 7, elevated: false),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.all(16),
+          decoration: panelDecoration(radius: 12, elevated: false),
+          child: Column(
             children: [
-              Container(
-                width: 100,
-                height: 100,
-                padding: const EdgeInsets.all(4),
-                color: Colors.white,
-                child: qrImageUrl.isNotEmpty
-                    ? Image.network(
-                        qrImageUrl,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                            QrImageView(
-                          data: upiPayload,
-                          version: QrVersions.auto,
-                          gapless: false,
-                        ),
-                      )
-                    : QrImageView(
-                        data: upiPayload,
-                        version: QrVersions.auto,
-                        gapless: false,
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: _paymentDetail('Resident Name', name)),
+                  Expanded(child: _paymentDetail('Block', block, alignRight: true)),
+                ],
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _paymentDetail('Amount', '₹${formatIndianNumber(amount)}'),
-                    _paymentDetail('Block', block),
-                    _paymentDetail('Flat', flatNumber.toUpperCase()),
-                    if (upiId.isNotEmpty) _paymentDetail('UPI ID', upiId),
-                    TextButton.icon(
-                      onPressed: () => onEdit(2),
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Edit details'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: _maroon,
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 30),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 12),
+              const Divider(color: _line),
+              const SizedBox(height: 12),
+              Text(
+                '₹${formatIndianNumber(amount)}',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: _ink,
+                ),
+              ),
+              const Text(
+                'AMOUNT TO PAY',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                  color: _muted,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        _paymentDetail('Name', name),
-        const SizedBox(height: 6),
+        const SizedBox(height: 24),
+        const Center(
+          child: Text(
+            'SCAN TO PAY',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              color: _ink,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: Container(
+            width: 240,
+            height: 240,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            child: qrImageUrl.isNotEmpty
+                ? Image.network(
+                    qrImageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => QrImageView(
+                      data: upiPayload,
+                      version: QrVersions.auto,
+                      gapless: false,
+                    ),
+                  )
+                : QrImageView(
+                    data: upiPayload,
+                    version: QrVersions.auto,
+                    gapless: false,
+                  ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        if (upiId.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: _paper,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: _line),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'UPI ID',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: _muted,
+                      ),
+                    ),
+                    Text(
+                      upiId,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _ink,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton.icon(
+                  onPressed: () {}, // Optional: implement copy
+                  icon: const Icon(Icons.copy, size: 16),
+                  label: const Text('Copy'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _maroon,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 24),
+        const Divider(color: _line),
+        const SizedBox(height: 16),
+        ContributionTextField(
+          label: 'Mobile Number *',
+          hint: 'Enter mobile number',
+          icon: Icons.phone_outlined,
+          controller: TextEditingController(text: phone), // Pass phone
+          readOnly: true,
+        ),
         ContributionTextField(
           label: 'UTR / Transaction ID *',
           hint: 'e.g. 123456789012',
           icon: Icons.tag,
           controller: utrController,
         ),
-        const SizedBox(height: 2),
-        const _FieldLabel('Screenshot *'),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
+        const _FieldLabel('Payment Screenshot *'),
+        const SizedBox(height: 8),
         InkWell(
           onTap: onPickScreenshot,
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               color: _paper,
               border: Border.all(color: _line),
-              borderRadius: BorderRadius.circular(7),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                const Icon(Icons.image_outlined, color: _maroon, size: 19),
-                const SizedBox(width: 10),
+                Icon(
+                  screenshotFileName != null ? Icons.image : Icons.add_a_photo_outlined,
+                  color: _maroon,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    screenshotFileName ?? 'Upload screenshot for reference',
+                    screenshotFileName ?? 'Upload Payment Screenshot',
                     style: TextStyle(
                       color: screenshotFileName != null ? _ink : _muted,
                       fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (screenshotFileName != null)
-                  const Icon(Icons.check_circle, color: Colors.green, size: 19),
+                  const Icon(Icons.check_circle, color: Colors.green, size: 24),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 12),
         const ContributionNotice(
           icon: Icons.shield_outlined,
-          text: 'Tap Submit for Verification after uploading your proof.',
+          text: 'Please upload the screenshot after making the payment.',
         ),
       ],
     );
   }
 
-  Widget _paymentDetail(String label, String value) {
+  Widget _paymentDetail(String label, String value, {bool alignRight = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Text(
             label,
@@ -817,15 +947,15 @@ class _PaymentStep extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 1),
+          const SizedBox(height: 2),
           Text(
             value.isEmpty ? '-' : value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: _ink,
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -931,6 +1061,7 @@ class ContributionTextField extends StatelessWidget {
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
     this.validator,
+    this.readOnly = false,
     super.key,
   });
 
@@ -942,6 +1073,7 @@ class ContributionTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final String? Function(String?)? validator;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -957,6 +1089,7 @@ class ContributionTextField extends StatelessWidget {
             keyboardType: keyboardType,
             textCapitalization: textCapitalization,
             validator: validator,
+            readOnly: readOnly,
             decoration: contributionInputDecoration(
               hint: hint,
               icon: icon,

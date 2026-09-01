@@ -162,7 +162,7 @@ class _ContributePageState extends State<ContributePage> {
           MaterialPageRoute(
             builder: (context) => ThankYouScreen(
               paymentData: response,
-              onBackToHome: widget.onBackToHome ?? () => Navigator.pushAndRemoveUntil(
+              onBackToHome: () => Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const FestivalShell()),
                 (route) => false,
@@ -773,54 +773,7 @@ class _PaymentStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Center(
-          child: Text(
-            'CONTRIBUTION',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-              color: _maroon,
-            ),
-          ),
-        ),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: panelDecoration(radius: 12, elevated: false),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: _paymentDetail('Resident Name', name)),
-                  Expanded(child: _paymentDetail('Block', block, alignRight: true)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Divider(color: _line),
-              const SizedBox(height: 12),
-              Text(
-                '₹${formatIndianNumber(amount)}',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: _ink,
-                ),
-              ),
-              const Text(
-                'AMOUNT TO PAY',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                  color: _muted,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(12),

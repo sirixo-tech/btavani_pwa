@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             const SizedBox(height: 24),
-            const ContributionTrackerCard(),
+            ContributionTrackerCard(appSettings: _appSettings),
             const SizedBox(height: 24),
           ],
         ),
@@ -568,10 +568,21 @@ class FestivalRibbon extends StatelessWidget {
 }
 
 class ContributionTrackerCard extends StatelessWidget {
-  const ContributionTrackerCard({super.key});
+  const ContributionTrackerCard({this.appSettings, super.key});
+
+  final Map<String, String>? appSettings;
 
   @override
   Widget build(BuildContext context) {
+    final totalAmount = appSettings?['tracker_total_amount'] ?? '12,48,500';
+    final targetPercentage = appSettings?['tracker_target_percentage'] ?? '62';
+    final familiesCount = appSettings?['tracker_families_count'] ?? '1,247';
+    final lastUpdated = appSettings?['tracker_last_updated'] ?? 'Today, 7:30 PM';
+    
+    final progressValue = double.tryParse(targetPercentage) != null 
+        ? (double.parse(targetPercentage) / 100).clamp(0.0, 1.0) 
+        : 0.62;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -613,9 +624,9 @@ class ContributionTrackerCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '₹ 12,48,500',
-                    style: TextStyle(
+                  Text(
+                    '₹ $totalAmount',
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: Colors.black,
@@ -638,17 +649,17 @@ class ContributionTrackerCard extends StatelessWidget {
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
                     Text(
-                      '62%',
-                      style: TextStyle(
+                      '$targetPercentage%',
+                      style: const TextStyle(
                         color: Color(0xFF2E7D32),
                         fontWeight: FontWeight.w900,
                         fontSize: 14,
                       ),
                     ),
-                    Text(
+                    const Text(
                       'of Target',
                       style: TextStyle(
                         color: Color(0xFF2E7D32),
@@ -665,7 +676,7 @@ class ContributionTrackerCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: 0.62,
+              value: progressValue,
               backgroundColor: Colors.grey[300],
               color: const Color(0xFF2E7D32),
               minHeight: 8,
@@ -682,9 +693,9 @@ class ContributionTrackerCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '1,247',
-                          style: TextStyle(
+                        Text(
+                          familiesCount,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 14,
                             color: Colors.black,
@@ -713,9 +724,9 @@ class ContributionTrackerCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Today, 7:30 PM',
-                          style: TextStyle(
+                        Text(
+                          lastUpdated,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 12,
                             color: Colors.black,

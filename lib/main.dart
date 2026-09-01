@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'src/core/confi/api_config.dart';
 

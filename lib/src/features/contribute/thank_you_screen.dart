@@ -21,9 +21,13 @@ class ThankYouScreen extends StatelessWidget {
     final receiptNumber = paymentData['receiptNumber'] ?? '-';
     final blockName = paymentData['blockName'] ?? '-';
     final status = paymentData['status'] == 'paid' ? 'Success' : 'Pending Verification';
+    final name = paymentData['residentName'] ?? '-';
+    final phone = paymentData['phone'] ?? '-';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAF8),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: const Color(0xFFF9FAF8),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -93,6 +97,8 @@ class ThankYouScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     _buildRow('Amount', '₹${NumberFormat('#,##,###').format(amount)}'),
+                    _buildRow('Name', name.toString()),
+                    _buildRow('Mobile Number', phone.toString()),
                     _buildRow('Date & Time', date),
                     _buildRow('Receipt No.', receiptNumber),
                     _buildRow('Block', blockName),
@@ -115,7 +121,7 @@ class ThankYouScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Your contribution helps make our Avani Ganesh Utsav 2026 a grand success!',
+                        'May Lord Ganesha shower you with health, wealth, and prosperity. Your generous contribution brings blessings to the entire community.',
                         style: TextStyle(
                           fontSize: 14,
                           height: 1.5,
@@ -171,6 +177,11 @@ class ThankYouScreen extends StatelessWidget {
           ),
         ),
       ),
+        ),
+        const Positioned.fill(
+          child: FlowerFall(),
+        ),
+      ],
     );
   }
 
@@ -225,4 +236,117 @@ class ThankYouScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class FlowerFall extends StatefulWidget {
+  const FlowerFall({super.key});
+
+  @override
+  State<FlowerFall> createState() => _FlowerFallState();
+}
+
+class _FlowerFallState extends State<FlowerFall> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  final _random = math.Random();
+  final List<_Flower> _flowers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat();
+
+    for (var i = 0; i < 40; i++) {
+      _flowers.add(_Flower(
+        x: _random.nextDouble(),
+        yOffset: _random.nextDouble(),
+        speed: 0.2 + _random.nextDouble() * 0.5,
+        size: 16 + _random.nextDouble() * 16,
+        color: [
+          Colors.pink[300]!,
+          Colors.orange[300]!,
+          Colors.yellow[400]!,
+          Colors.red[300]!,
+        ][_random.nextInt(4)],
+        rotationSpeed: (_random.nextDouble() - 0.5) * 2 * math.pi,
+      ));
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: _FlowerPainter(
+              flowers: _flowers,
+              progress: _controller.value,
+            ),
+            size: Size.infinite,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Flower {
+  _Flower({
+    required this.x,
+    required this.yOffset,
+    required this.speed,
+    required this.size,
+    required this.color,
+    required this.rotationSpeed,
+  });
+  final double x;
+  final double yOffset;
+  final double speed;
+  final double size;
+  final Color color;
+  final double rotationSpeed;
+}
+
+class _FlowerPainter extends CustomPainter {
+  _FlowerPainter({required this.flowers, required this.progress});
+  final List<_Flower> flowers;
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    for (final f in flowers) {
+      final y = ((f.yOffset + progress * f.speed) % 1.0) * (size.height + 100) - 50;
+      final x = f.x * size.width;
+      final rotation = progress * f.rotationSpeed * 5;
+
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(rotation);
+      
+      paint.color = f.color;
+      
+      for (var i = 0; i < 5; i++) {
+        canvas.drawCircle(Offset(0, f.size * 0.4), f.size * 0.3, paint);
+        canvas.rotate(2 * math.pi / 5);
+      }
+      paint.color = Colors.yellow[600]!;
+      canvas.drawCircle(Offset.zero, f.size * 0.2, paint);
+
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FlowerPainter oldDelegate) => true;
 }

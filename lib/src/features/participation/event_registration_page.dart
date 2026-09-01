@@ -11,41 +11,44 @@ class EventRegistrationPage extends StatefulWidget {
 
 class _EventRegistrationPageState extends State<EventRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _flatController = TextEditingController();
-  final _mobileController = TextEditingController();
+  final _kidsNameController = TextEditingController();
+  final _kidsAgeController = TextEditingController();
+  final _parentNameController = TextEditingController();
+  final _parentPhoneController = TextEditingController();
+  final _otherActivityController = TextEditingController();
 
-  late String? _selectedEvent;
-  String? _selectedAgeGroup;
+  String _selectedPersonType = 'Kids';
+  String? _selectedActivity;
   bool _isSubmitting = false;
 
-  static const _ageGroups = [
-    'Below 6 years',
-    '6 - 10 years',
-    '11 - 15 years',
-    '16 - 21 years',
-    'Adult',
+  static const _personTypes = ['Kids', 'Adults'];
+  static const _activities = [
+    'Dancing(Solo)',
+    'Dancing(Group)',
+    'Singing',
+    'Instrumental',
+    'Other'
   ];
 
   @override
   void initState() {
     super.initState();
-    _selectedEvent = _initialSelectedEvent;
+    // Default to the first activity if initialEvent matches, otherwise null
+    if (widget.initialEvent != null && _activities.contains(widget.initialEvent)) {
+      _selectedActivity = widget.initialEvent;
+    }
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
     _flatController.dispose();
-    _mobileController.dispose();
+    _kidsNameController.dispose();
+    _kidsAgeController.dispose();
+    _parentNameController.dispose();
+    _parentPhoneController.dispose();
+    _otherActivityController.dispose();
     super.dispose();
-  }
-
-  String? get _initialSelectedEvent {
-    final initialEvent = widget.initialEvent;
-    return fallbackEventItems.any((event) => event.title == initialEvent)
-        ? initialEvent
-        : null;
   }
 
   Future<void> _submitRegistration() async {
@@ -55,15 +58,27 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
       return;
     }
 
+    if (_selectedActivity == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an activity.')),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
     try {
       final api = EventApiService();
       await api.submitRegistration(
-        eventTitle: _selectedEvent!,
-        participantName: _nameController.text.trim(),
+        eventTitle: _selectedActivity!,
+        participantName: _parentNameController.text.trim(),
         flatNumber: _flatController.text.trim(),
-        ageGroup: _selectedAgeGroup!,
-        mobile: _mobileController.text.trim(),
+        ageGroup: '', // Deprecated, keeping empty
+        mobile: _parentPhoneController.text.trim(),
+        personType: _selectedPersonType,
+        kidsName: _selectedPersonType == 'Kids' ? _kidsNameController.text.trim() : '',
+        kidsAge: _selectedPersonType == 'Kids' ? _kidsAgeController.text.trim() : '',
+        parentAdultPhone: _parentPhoneController.text.trim(),
+        otherPerformanceDetails: _selectedActivity == 'Other' ? _otherActivityController.text.trim() : '',
       );
       if (!mounted) return;
       await _showRegistrationConfirmation();
@@ -80,8 +95,8 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
   }
 
   Future<void> _showRegistrationConfirmation() async {
-    final event = _selectedEvent!;
-    final name = _nameController.text.trim();
+    final activity = _selectedActivity!;
+    final name = _selectedPersonType == 'Kids' ? _kidsNameController.text.trim() : _parentNameController.text.trim();
 
     await showDialog<void>(
       context: context,
@@ -92,7 +107,7 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
           content: Text(
-            '$name has been registered for $event.',
+            '$name has been registered for $activity.',
             style: const TextStyle(color: _muted, fontWeight: FontWeight.w700),
           ),
           actions: [
@@ -115,12 +130,15 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
     if (!mounted) return;
 
     _formKey.currentState!.reset();
-    _nameController.clear();
     _flatController.clear();
-    _mobileController.clear();
+    _kidsNameController.clear();
+    _kidsAgeController.clear();
+    _parentNameController.clear();
+    _parentPhoneController.clear();
+    _otherActivityController.clear();
     setState(() {
-      _selectedEvent = _initialSelectedEvent;
-      _selectedAgeGroup = null;
+      _selectedActivity = null;
+      _selectedPersonType = 'Kids';
     });
   }
 
@@ -137,62 +155,114 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
               padding: const EdgeInsets.all(16),
               decoration: panelDecoration(),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _RegistrationDropdown(
-                    label: 'Select Event',
-                    value: _selectedEvent,
-                    hint: 'Select event',
-                    items: fallbackEventItems.map((event) => event.title).toList(),
-                    validator: (value) =>
-                        value == null ? 'Please select an event.' : null,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedEvent = value;
-                      });
+                  _RegistrationTextField(
+                    controller: _flatController,
+                    label: 'Block No & Flat No *',
+                    hint: 'e.g. A-101',
+                    textCapitalization: TextCapitalization.characters,
+                    validator: (value) {
+                      if (value?.trim().isEmpty ?? true) {
+                        return 'Please enter block and flat number.';
+                      }
+                      return null;
                     },
                   ),
+                  const SizedBox(height: 8),
+                  const Text('Select the person *', style: TextStyle(fontWeight: FontWeight.bold, color: _muted)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 16,
+                    children: _personTypes.map((type) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Radio<String>(
+                            value: type,
+                            groupValue: _selectedPersonType,
+                            activeColor: _maroon,
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedPersonType = value;
+                                });
+                              }
+                            },
+                          ),
+                          Text(type, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Activity *', style: TextStyle(fontWeight: FontWeight.bold, color: _muted)),
+                  const SizedBox(height: 8),
+                  Column(
+                    children: _activities.map((activity) {
+                      return Row(
+                        children: [
+                          Radio<String>(
+                            value: activity,
+                            groupValue: _selectedActivity,
+                            activeColor: _maroon,
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedActivity = value;
+                                });
+                              }
+                            },
+                          ),
+                          Expanded(child: Text(activity, style: const TextStyle(fontWeight: FontWeight.w600))),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  if (_selectedPersonType == 'Kids') ...[
+                    _RegistrationTextField(
+                      controller: _kidsNameController,
+                      label: 'Kids Name *',
+                      hint: 'Enter kids name',
+                      textCapitalization: TextCapitalization.words,
+                      validator: (value) {
+                        if (_selectedPersonType == 'Kids' && (value?.trim().isEmpty ?? true)) {
+                          return 'Please enter kids name.';
+                        }
+                        return null;
+                      },
+                    ),
+                    _RegistrationTextField(
+                      controller: _kidsAgeController,
+                      label: 'Kids Age *',
+                      hint: 'Enter kids age',
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (_selectedPersonType == 'Kids' && (value?.trim().isEmpty ?? true)) {
+                          return 'Please enter kids age.';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+
                   _RegistrationTextField(
-                    controller: _nameController,
-                    label: 'Participant Name',
+                    controller: _parentNameController,
+                    label: 'Parent/Adult Name *',
                     hint: 'Enter name',
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
-                      final text = value?.trim() ?? '';
-                      if (text.length < 2) {
-                        return 'Please enter the participant name.';
+                      if (value?.trim().isEmpty ?? true) {
+                        return 'Please enter parent/adult name.';
                       }
                       return null;
                     },
                   ),
                   _RegistrationTextField(
-                    controller: _flatController,
-                    label: 'Flat Number',
-                    hint: 'e.g. I-1204',
-                    textCapitalization: TextCapitalization.characters,
-                    validator: (value) {
-                      final text = value?.trim() ?? '';
-                      if (text.isEmpty) {
-                        return 'Please enter the flat number.';
-                      }
-                      return null;
-                    },
-                  ),
-                  _RegistrationDropdown(
-                    label: 'Age Group',
-                    value: _selectedAgeGroup,
-                    hint: 'Select age group',
-                    items: _ageGroups,
-                    validator: (value) =>
-                        value == null ? 'Please select an age group.' : null,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedAgeGroup = value;
-                      });
-                    },
-                  ),
-                  _RegistrationTextField(
-                    controller: _mobileController,
-                    label: 'Mobile Number',
+                    controller: _parentPhoneController,
+                    label: 'Parent/Adult Phone Number *',
                     hint: 'Enter mobile number',
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
@@ -207,6 +277,21 @@ class _EventRegistrationPageState extends State<EventRegistrationPage> {
                       return null;
                     },
                   ),
+
+                  if (_selectedActivity == 'Other') ...[
+                    _RegistrationTextField(
+                      controller: _otherActivityController,
+                      label: 'Other performance (please give details) *',
+                      hint: 'Enter details',
+                      textCapitalization: TextCapitalization.sentences,
+                      validator: (value) {
+                        if (_selectedActivity == 'Other' && (value?.trim().isEmpty ?? true)) {
+                          return 'Please enter performance details.';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -258,46 +343,7 @@ class _RegistrationTextField extends StatelessWidget {
   }
 }
 
-class _RegistrationDropdown extends StatelessWidget {
-  const _RegistrationDropdown({
-    required this.label,
-    required this.value,
-    required this.hint,
-    required this.items,
-    required this.onChanged,
-    required this.validator,
-  });
 
-  final String label;
-  final String? value;
-  final String hint;
-  final List<String> items;
-  final ValueChanged<String?> onChanged;
-  final String? Function(String?) validator;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: DropdownButtonFormField<String>(
-        initialValue: value,
-        isExpanded: true,
-        icon: const Icon(Icons.keyboard_arrow_down),
-        decoration: _registrationInputDecoration(label, hint),
-        validator: validator,
-        items: items
-            .map(
-              (item) => DropdownMenuItem<String>(
-                value: item,
-                child: Text(item, maxLines: 1, overflow: TextOverflow.ellipsis),
-              ),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
-}
 
 InputDecoration _registrationInputDecoration(String label, String hint) {
   return InputDecoration(

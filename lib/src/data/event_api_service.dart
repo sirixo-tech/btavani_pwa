@@ -61,6 +61,11 @@ class EventApiService {
     required String flatNumber,
     required String ageGroup,
     required String mobile,
+    required String personType,
+    required String kidsName,
+    required String kidsAge,
+    required String parentAdultPhone,
+    required String otherPerformanceDetails,
   }) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/api/mobile/registrations');
     final response = await http.post(
@@ -72,6 +77,11 @@ class EventApiService {
         'flatNumber': flatNumber,
         'ageGroup': ageGroup,
         'mobile': mobile,
+        'personType': personType,
+        'kidsName': kidsName,
+        'kidsAge': kidsAge,
+        'parentAdultPhone': parentAdultPhone,
+        'otherPerformanceDetails': otherPerformanceDetails,
       }),
     );
     if (response.statusCode != 201) {

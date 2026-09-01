@@ -10,7 +10,8 @@ class TransparencyPage extends StatefulWidget {
 class _TransparencyPageState extends State<TransparencyPage> {
   bool _isLoading = true;
   TransparencySummary _summary = TransparencySummary.empty();
-  List<TransparencyBlockCollection> _blockCollections = _fallbackCollections();
+  List<TransparencyBlockCollection> _blockCollections = [];
+  List<TransparencyPayment> _payments = [];
   String? _error;
 
   @override
@@ -34,10 +35,18 @@ class _TransparencyPageState extends State<TransparencyPage> {
                 .map((json) => TransparencyBlockCollection.fromJson(json))
                 .toList() ??
             _fallbackCollections();
+            
+        final paymentsList = (data['payments'] as List<dynamic>?)
+                ?.whereType<Map>()
+                .map((json) => TransparencyPayment.fromJson(json))
+                .toList() ??
+            [];
+
         if (mounted) {
           setState(() {
             _summary = TransparencySummary.fromJson(data, blocks);
             _blockCollections = blocks;
+            _payments = paymentsList;
             _isLoading = false;
           });
         }
@@ -99,6 +108,7 @@ class _TransparencyPageState extends State<TransparencyPage> {
                 const SizedBox(height: 14),
                 _BlockCollectionsCard(
                   blocks: _blockCollections,
+                  payments: _payments,
                   totalAmount: _summary.totalAmount,
                 ),
               ],
@@ -175,17 +185,20 @@ class TransparencySummary {
 
 class TransparencyBlockCollection {
   const TransparencyBlockCollection({
+    required this.blockId,
     required this.blockName,
     required this.totalPayments,
     required this.totalAmount,
   });
 
+  final String blockId;
   final String blockName;
   final int totalPayments;
   final int totalAmount;
 
   factory TransparencyBlockCollection.fromJson(Map<dynamic, dynamic> json) {
     return TransparencyBlockCollection(
+      blockId: _readString(json['blockId'] ?? json['block_id']),
       blockName: _readString(json['blockName'] ?? json['block_name']).isEmpty
           ? 'Unknown Block'
           : _readString(json['blockName'] ?? json['block_name']),
@@ -199,6 +212,7 @@ List<TransparencyBlockCollection> _fallbackCollections() {
   return fallbackBlocks
       .map(
         (block) => TransparencyBlockCollection(
+          blockId: block.id,
           blockName: block.name,
           totalPayments: 0,
           totalAmount: 0,
@@ -207,14 +221,34 @@ List<TransparencyBlockCollection> _fallbackCollections() {
       .toList();
 }
 
+class TransparencyPayment {
+  const TransparencyPayment({
+    required this.residentName,
+    required this.amount,
+    required this.blockId,
+  });
+
+  final String residentName;
+  final int amount;
+  final String blockId;
+
+  factory TransparencyPayment.fromJson(Map<dynamic, dynamic> json) {
+    return TransparencyPayment(
+      residentName: _readString(json['residentName'] ?? json['resident_name']),
+      amount: _readInt(json['amount']),
+      blockId: _readString(json['blockId'] ?? json['block_id']),
+    );
+  }
+}
+
 int _readInt(dynamic value) {
   if (value is int) return value;
   if (value is num) return value.round();
-  return int.tryParse(String(value ?? '').replaceAll(RegExp(r'[^0-9-]'), '')) ??
+  return int.tryParse((value ?? '').toString().replaceAll(RegExp(r'[^0-9-]'), '')) ??
       0;
 }
 
-String _readString(dynamic value) => String(value ?? '').trim();
+String _readString(dynamic value) => (value ?? '').toString().trim();
 
 String _formatUpdatedAt(String value) {
   final date = DateTime.tryParse(value);
@@ -341,9 +375,14 @@ class _SummaryMetric extends StatelessWidget {
 }
 
 class _BlockCollectionsCard extends StatelessWidget {
-  const _BlockCollectionsCard({required this.blocks, required this.totalAmount});
+  const _BlockCollectionsCard({
+    required this.blocks,
+    required this.payments,
+    required this.totalAmount,
+  });
 
   final List<TransparencyBlockCollection> blocks;
+  final List<TransparencyPayment> payments;
   final int totalAmount;
 
   @override
@@ -369,13 +408,19 @@ class _BlockCollectionsCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           ...blocks.map(
-            (block) => Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _BlockCollectionRow(
-                block: block,
-                progress: block.totalAmount / maxAmount,
-              ),
-            ),
+            (block) {
+              final blockPayments = payments
+                  .where((p) => p.blockId == block.blockId)
+                  .toList();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _BlockCollectionRow(
+                  block: block,
+                  payments: blockPayments,
+                  progress: block.totalAmount / maxAmount,
+                ),
+              );
+            },
           ),
           Container(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -410,9 +455,14 @@ class _BlockCollectionsCard extends StatelessWidget {
 }
 
 class _BlockCollectionRow extends StatelessWidget {
-  const _BlockCollectionRow({required this.block, required this.progress});
+  const _BlockCollectionRow({
+    required this.block,
+    required this.payments,
+    required this.progress,
+  });
 
   final TransparencyBlockCollection block;
+  final List<TransparencyPayment> payments;
   final double progress;
 
   @override
@@ -474,6 +524,7 @@ class _BlockCollectionRow extends StatelessWidget {
                   fontSize: 11,
                 ),
               ),
+              _PaymentsList(payments: payments),
             ],
           ),
         ),
@@ -512,3 +563,56 @@ class _TransparencyNotice extends StatelessWidget {
     );
   }
 }
+
+class _PaymentsList extends StatelessWidget {
+  const _PaymentsList({required this.payments});
+
+  final List<TransparencyPayment> payments;
+
+  @override
+  Widget build(BuildContext context) {
+    if (payments.isEmpty) return const SizedBox();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3DE).withOpacity(0.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: payments.map((payment) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      payment.residentName,
+                      style: const TextStyle(
+                        color: Color(0xFF17120F),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    "₹${formatIndianNumber(payment.amount)}",
+                    style: const TextStyle(
+                      color: Color(0xFF3F7E4A),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}
+

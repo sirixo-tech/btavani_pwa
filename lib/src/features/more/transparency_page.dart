@@ -131,7 +131,7 @@ class _TransparencyPageState extends State<TransparencyPage> {
                     Text(
                       '₹${formatIndianNumber(block['total_amount'] ?? 0)}',
                       style: const TextStyle(
-                        color: _green,
+                        color: _leaf,
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
                       ),

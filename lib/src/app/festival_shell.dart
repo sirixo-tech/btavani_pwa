@@ -18,7 +18,7 @@ class _FestivalShellState extends State<FestivalShell> {
   Widget build(BuildContext context) {
     final pages = [
       HomePage(onTabSelected: _selectTab),
-      EventsPage(onTabSelected: _selectTab),
+      const GalleryPage(),
       ContributePage(onBackToHome: () => _selectTab(0)),
       MorePage(onTabSelected: _selectTab),
     ];
@@ -46,9 +46,9 @@ class _FestivalShellState extends State<FestivalShell> {
                       label: 'Home',
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.event_note_outlined),
-                      selectedIcon: Icon(Icons.event_note, color: _maroon),
-                      label: 'Events',
+                      icon: Icon(Icons.photo_library_outlined),
+                      selectedIcon: Icon(Icons.photo_library, color: _maroon),
+                      label: 'Gallery',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.favorite_border),

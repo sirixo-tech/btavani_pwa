@@ -85,7 +85,7 @@ class _ContributePageState extends State<ContributePage> {
         'pn': 'BT AVANI Ganesh Utsav Committee',
         'am': amount.toStringAsFixed(2),
         'cu': 'INR',
-        'tn': 'Avani Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''}',
+      'tn': 'Avani Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''} Flat ${_flatController.text.trim()}',
       },
     );
   }
@@ -809,15 +809,22 @@ class _PaymentStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 16),
-        const Center(
-          child: Text(
-            'Pay using any UPI App',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: _ink,
+        const Row(
+          children: [
+            Expanded(child: Divider(color: _line)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'Pay using any UPI App',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _ink,
+                ),
+              ),
             ),
-          ),
+            Expanded(child: Divider(color: _line)),
+          ],
         ),
         const SizedBox(height: 12),
         Row(
@@ -853,114 +860,110 @@ class _PaymentStep extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Center(
-          child: Container(
-            width: 240,
-            height: 240,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ],
-            ),
-            child: qrImageUrl.isNotEmpty
-                ? Image.network(
-                    qrImageUrl,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => QrImageView(
-                      data: upiPayload,
-                      version: QrVersions.auto,
-                      gapless: false,
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _line.withOpacity(0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: _line.withOpacity(0.5)),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: qrImageUrl.isNotEmpty
+                    ? Image.network(
+                        qrImageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => QrImageView(
+                          data: upiPayload,
+                          version: QrVersions.auto,
+                          gapless: false,
+                        ),
+                      )
+                    : QrImageView(
+                        data: upiPayload,
+                        version: QrVersions.auto,
+                        gapless: false,
+                      ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Scan & Pay',
+                      style: TextStyle(
+                        color: _maroon,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  )
-                : QrImageView(
-                    data: upiPayload,
-                    version: QrVersions.auto,
-                    gapless: false,
-                  ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Use any UPI App to scan this QR code and make payment.',
+                      style: TextStyle(
+                        color: _ink,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 24),
-        if (upiId.isNotEmpty) ...[
-          const Text(
-            'UPI ID',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: _ink,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _maroon.withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    upiId,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _ink,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: upiId));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('UPI ID copied to clipboard'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.copy, size: 16),
-                  label: const Text('Copy'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: _maroon,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: const Color(0xFFFFF8E1),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0xFFFFECB3)),
           ),
-          child: const Row(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline, color: Color(0xFFF57F17), size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'After payment, you need to upload the payment screenshot below to complete the process.',
-                  style: TextStyle(
-                    color: Color(0xFFF57F17),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: _maroon,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.info_outline, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: 'Once payment is complete in your UPI App, please ',
+                    style: TextStyle(color: _ink, fontSize: 13, height: 1.4),
+                    children: [
+                      TextSpan(
+                        text: 'come back to this screen',
+                        style: TextStyle(color: _maroon, fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: ' and upload the payment proof for verification.',
+                      ),
+                    ],
                   ),
                 ),
               ),

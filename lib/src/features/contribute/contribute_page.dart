@@ -759,13 +759,17 @@ class _PaymentStep extends StatelessWidget {
           url = url.replaceFirst('upi://pay', urlScheme);
         }
         final uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          // Fallback to standard upi:// if specific app intent fails
-          final standardUri = Uri.parse(upiPayload);
-          if (await canLaunchUrl(standardUri)) {
-            await launchUrl(standardUri, mode: LaunchMode.externalApplication);
+        try {
+          // On Web, canLaunchUrl often returns false for custom schemes due to browser security.
+          // We must directly try to launch it.
+          final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+          if (!launched && urlScheme.isNotEmpty) {
+             // Fallback to standard upi:// if specific app intent fails
+             await launchUrl(Uri.parse(upiPayload), mode: LaunchMode.externalApplication);
+          }
+        } catch (e) {
+          if (urlScheme.isNotEmpty) {
+             await launchUrl(Uri.parse(upiPayload), mode: LaunchMode.externalApplication);
           }
         }
       },

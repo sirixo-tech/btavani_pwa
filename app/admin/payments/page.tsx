@@ -140,6 +140,10 @@ export default async function PaymentsPage({
               <input required name="residentName" className="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm" />
             </div>
             <div>
+              <label className="block text-sm font-medium leading-6 text-zinc-900">Flat Number</label>
+              <input required name="flatNumber" className="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm" />
+            </div>
+            <div>
               <label className="block text-sm font-medium leading-6 text-zinc-900">Amount</label>
               <input required type="number" name="amount" className="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm" />
             </div>

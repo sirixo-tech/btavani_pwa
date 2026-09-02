@@ -76,6 +76,11 @@ type DbRegistration = {
   flat_number: string;
   age_group: string;
   mobile: string;
+  person_type: string;
+  kids_name: string;
+  kids_age: string;
+  parent_adult_phone: string;
+  other_performance_details: string;
   status: Registration["status"];
   created_at: string;
 };
@@ -170,6 +175,11 @@ function mapRegistration(row: DbRegistration): Registration {
     flatNumber: row.flat_number,
     ageGroup: row.age_group,
     mobile: row.mobile,
+    personType: row.person_type || "Kids",
+    kidsName: row.kids_name || "",
+    kidsAge: row.kids_age || "",
+    parentAdultPhone: row.parent_adult_phone || "",
+    otherPerformanceDetails: row.other_performance_details || "",
     status: row.status,
     createdAt: row.created_at,
   };
@@ -852,7 +862,7 @@ export async function clearDemoData() {
 
 export async function updateRegistrationStatus(id: string, status: Registration["status"]) {
   if (!hasDatabase()) {
-    const reg = memory.registrations.find((r) => r.id === id);
+    const reg = memory.registrations.find((r: any) => r.id === id);
     if (reg) reg.status = status;
     return;
   }
@@ -861,7 +871,7 @@ export async function updateRegistrationStatus(id: string, status: Registration[
 
 export async function deleteRegistration(id: string) {
   if (!hasDatabase()) {
-    memory.registrations = memory.registrations.filter((r) => r.id !== id);
+    memory.registrations = memory.registrations.filter((r: any) => r.id !== id);
     return;
   }
   await query("delete from event_registrations where id = $1", [id]);

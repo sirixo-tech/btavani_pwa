@@ -571,15 +571,17 @@ class _AmountStep extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 2.2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.0,
           ),
           itemCount: amounts.length,
           itemBuilder: (context, index) {
+            final option = amounts[index];
             return AmountButton(
-              label: amounts[index].label,
+              amount: option.amount,
               selected: selectedAmountIndex == index,
+              isPopular: index == 0,
               onTap: () => onSelected(index),
             );
           },
@@ -1186,62 +1188,134 @@ class ReviewRow extends StatelessWidget {
 
 class AmountButton extends StatelessWidget {
   const AmountButton({
-    required this.label,
+    required this.amount,
     required this.selected,
+    required this.isPopular,
     required this.onTap,
     super.key,
   });
 
-  final String label;
+  final int? amount;
   final bool selected;
+  final bool isPopular;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final isOther = amount == null;
+    final bgColor = isOther
+        ? const Color(0xFFFFF8E1)
+        : (selected ? const Color(0xFFFFF0ED) : Colors.white);
+    final borderColor = selected ? _maroon : const Color(0xFFE8E8E8);
+
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(7),
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Ink(
           decoration: BoxDecoration(
-            gradient: selected
-                ? const LinearGradient(
-                    colors: [_maroon, _maroonDark],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: selected ? null : _paper,
-            border: Border.all(
-              color: selected ? _maroon : _line.withValues(alpha: 0.9),
-            ),
-            borderRadius: BorderRadius.circular(7),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: _maroon.withValues(alpha: 0.18),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : null,
+            color: bgColor,
+            border: Border.all(color: borderColor, width: selected ? 2 : 1),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              if (!selected && !isOther)
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+            ],
           ),
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
+          child: isOther
+              ? _buildOtherContent()
+              : _buildPresetContent(amount!),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetContent(int value) {
+    return Stack(
+      children: [
+        if (isPopular)
+          Positioned(
+            top: 12,
+            left: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEB),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Popular',
                 style: TextStyle(
-                  color: selected ? Colors.white : _ink,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
+                  color: _maroon,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '₹${formatIndianNumber(value)}',
+                style: const TextStyle(
+                  color: _maroon,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Suggested',
+                style: TextStyle(
+                  color: _muted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildOtherContent() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: _maroon.withOpacity(0.4),
+                width: 1.5,
+                style: BorderStyle.solid, // Custom dashed could be drawn, but solid is ok or we can use an icon
+              ),
+            ),
+            child: const Icon(Icons.edit, color: _maroon, size: 24),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Enter Any\nAmount',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _maroon,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -550,7 +550,7 @@ class _AmountStep extends StatelessWidget {
       children: [
         const _StepTitle(
           title: 'Choose Contribution Amount',
-          subtitle: 'Please enter your contribution amount.',
+          subtitle: '',
         ),
         const SizedBox(height: 22),
         const Text(
@@ -573,7 +573,6 @@ class _AmountStep extends StatelessWidget {
             return AmountButton(
               amount: option.amount,
               selected: selectedAmountIndex == index,
-              isPopular: index == 0,
               onTap: () => onSelected(index),
             );
           },
@@ -765,16 +764,30 @@ class _PaymentStep extends StatelessWidget {
         const SizedBox(height: 16),
         const Center(
           child: Text(
-            'SCAN TO PAY',
+            'Pay using any UPI App',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
               color: _ink,
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildUpiAppIcon('PhonePe', const Color(0xFF6739B7)),
+            const SizedBox(width: 12),
+            _buildUpiAppIcon('GPay', const Color(0xFF1A73E8)),
+            const SizedBox(width: 12),
+            _buildUpiAppIcon('Paytm', const Color(0xFF00B9F1)),
+            const SizedBox(width: 12),
+            _buildUpiAppIcon('BHIM', const Color(0xFFF37021)),
+            const SizedBox(width: 12),
+            _buildUpiAppIcon('Any UPI', const Color(0xFF000000)),
+          ],
+        ),
+        const SizedBox(height: 24),
         Center(
           child: Container(
             width: 280,
@@ -809,29 +822,27 @@ class _PaymentStep extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        if (upiId.isNotEmpty)
+        if (upiId.isNotEmpty) ...[
+          const Text(
+            'OR Pay using UPI ID',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _ink,
+            ),
+          ),
+          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: _paper,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _line),
+              border: Border.all(color: _maroon.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'UPI ID',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: _muted,
-                      ),
-                    ),
-                    Text(
+                Text(
                       upiId,
                       style: const TextStyle(
                         fontSize: 14,
@@ -841,27 +852,49 @@ class _PaymentStep extends StatelessWidget {
                     ),
                   ],
                 ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: upiId));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('UPI ID copied to clipboard'),
-                        behavior: SnackBarBehavior.floating,
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9), // Light green
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF81C784)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.verified_user_outlined, color: Color(0xFF2E7D32), size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Paying from the same phone?',
+                        style: TextStyle(
+                          color: Color(0xFF2E7D32),
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.copy, size: 16),
-                  label: const Text('Copy'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: _maroon,
-                    padding: EdgeInsets.zero,
+                      SizedBox(height: 4),
+                      Text(
+                        'Use the UPI ID above in your UPI app to pay directly. No QR scan needed!',
+                        style: TextStyle(
+                          color: Color(0xFF2E7D32),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
+        ],
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.all(12),
@@ -940,6 +973,41 @@ class _PaymentStep extends StatelessWidget {
           hint: 'e.g. 123456789012',
           icon: Icons.tag,
           controller: utrController,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUpiAppIcon(String name, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _line),
+          ),
+          child: Center(
+            child: Text(
+              name.substring(0, 1),
+              style: TextStyle(
+                color: color,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          name,
+          style: const TextStyle(
+            fontSize: 10,
+            color: _muted,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -1191,14 +1259,12 @@ class AmountButton extends StatelessWidget {
   const AmountButton({
     required this.amount,
     required this.selected,
-    required this.isPopular,
     required this.onTap,
     super.key,
   });
 
   final int? amount;
   final bool selected;
-  final bool isPopular;
   final VoidCallback onTap;
 
   @override
@@ -1238,32 +1304,10 @@ class AmountButton extends StatelessWidget {
   }
 
   Widget _buildPresetContent(int value) {
-    return Stack(
-      children: [
-        if (isPopular)
-          Positioned(
-            top: 12,
-            left: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFEBEB),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'Popular',
-                style: TextStyle(
-                  color: _maroon,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
               Text(
                 '₹${formatIndianNumber(value)}',
                 style: const TextStyle(
@@ -1286,7 +1330,6 @@ class AmountButton extends StatelessWidget {
         ),
       ],
     );
-  }
 
   Widget _buildOtherContent() {
     return Center(

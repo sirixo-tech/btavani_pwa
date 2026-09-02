@@ -772,8 +772,8 @@ class _PaymentStep extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -788,12 +788,15 @@ class _PaymentStep extends StatelessWidget {
               child: assetPath != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(assetPath, fit: BoxFit.cover),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset(assetPath, fit: BoxFit.contain),
+                      ),
                     )
                   : Icon(Icons.account_balance, color: fallbackColor),
             ),
-            const SizedBox(height: 4),
-            Text(name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _muted)),
+            const SizedBox(height: 6),
+            Text(name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _muted)),
           ],
         ),
       ),
@@ -875,8 +878,8 @@ class _PaymentStep extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 130,
-                height: 130,
+                width: 160,
+                height: 160,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: _line.withOpacity(0.5)),

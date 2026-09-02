@@ -78,27 +78,15 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => _push(context, const TransparencyPage()),
                 ),
                 QuickActionCard(
-                  label: 'Volunteer Registration',
-                  icon: Icons.diversity_3,
-                  color: _leaf,
-                  onTap: () => _push(context, const VolunteerPage()),
-                ),
-                QuickActionCard(
                   label: "Today's Schedule",
                   icon: Icons.calendar_month,
                   color: _teal,
                   onTap: () => _push(context, const SchedulePage()),
                 ),
                 QuickActionCard(
-                  label: 'Announcements',
-                  icon: Icons.campaign,
-                  color: _violet,
-                  onTap: () => _push(context, const AnnouncementsPage()),
-                ),
-                QuickActionCard(
                   label: 'Event Registration',
                   icon: Icons.theater_comedy,
-                  color: const Color(0xFFE08912),
+                  color: _violet,
                   onTap: () => _push(context, const EventRegistrationPage()),
                 ),
               ],

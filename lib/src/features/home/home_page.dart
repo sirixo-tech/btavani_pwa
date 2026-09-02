@@ -60,10 +60,10 @@ class _HomePageState extends State<HomePage> {
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 3,
+              crossAxisCount: 2,
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
-              childAspectRatio: 0.94,
+              childAspectRatio: 1.35,
               children: [
                 QuickActionCard(
                   label: 'Chanda',

@@ -1019,46 +1019,6 @@ class _PaymentStep extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildUpiAppIcon(String name, String? assetPath, {Color? fallbackColor}) {
-    return Column(
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _line),
-          ),
-          child: Center(
-            child: assetPath != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(11),
-                    child: Image.asset(assetPath, width: 42, height: 42, fit: BoxFit.contain),
-                  )
-                : Text(
-                    name.substring(0, 1),
-                    style: TextStyle(
-                      color: fallbackColor ?? _ink,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          name,
-          style: const TextStyle(
-            fontSize: 10,
-            color: _muted,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _StepTitle extends StatelessWidget {

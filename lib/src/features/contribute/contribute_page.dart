@@ -548,11 +548,7 @@ class _AmountStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _StepTitle(
-          title: 'Choose Contribution Amount',
-          subtitle: '',
-        ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 8),
         const Text(
           'Select Amount',
           style: TextStyle(color: _ink, fontWeight: FontWeight.w900),
@@ -776,15 +772,15 @@ class _PaymentStep extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildUpiAppIcon('PhonePe', const Color(0xFF6739B7)),
+            _buildUpiAppIcon('PhonePe', 'assets/images/payment/phonepe.png'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('GPay', const Color(0xFF1A73E8)),
+            _buildUpiAppIcon('GPay', 'assets/images/payment/google_pay.png'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('Paytm', const Color(0xFF00B9F1)),
+            _buildUpiAppIcon('Paytm', 'assets/images/payment/paytm.jpg'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('BHIM', const Color(0xFFF37021)),
+            _buildUpiAppIcon('BHIM', 'assets/images/payment/bhim.png'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('Any UPI', const Color(0xFF000000)),
+            _buildUpiAppIcon('Any UPI', null, fallbackColor: const Color(0xFF000000)),
           ],
         ),
         const SizedBox(height: 24),
@@ -998,29 +994,34 @@ class _PaymentStep extends StatelessWidget {
     );
   }
 
-  Widget _buildUpiAppIcon(String name, Color color) {
+  Widget _buildUpiAppIcon(String name, String? assetPath, {Color? fallbackColor}) {
     return Column(
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: _line),
           ),
           child: Center(
-            child: Text(
-              name.substring(0, 1),
-              style: TextStyle(
-                color: color,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: assetPath != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: Image.asset(assetPath, width: 42, height: 42, fit: BoxFit.contain),
+                  )
+                : Text(
+                    name.substring(0, 1),
+                    style: TextStyle(
+                      color: fallbackColor ?? _ink,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           name,
           style: const TextStyle(

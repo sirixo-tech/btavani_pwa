@@ -83,7 +83,7 @@ class _ContributePageState extends State<ContributePage> {
       queryParameters: {
         'pa': _selectedUpiId,
         'pn': 'BT AVANI Ganesh Utsav Committee',
-        'am': amount.toString(),
+        'am': amount.toStringAsFixed(2),
         'cu': 'INR',
         'tn': 'Avani Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''}',
       },

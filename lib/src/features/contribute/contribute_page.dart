@@ -10,8 +10,7 @@ class ContributePage extends StatefulWidget {
 }
 
 class _ContributePageState extends State<ContributePage> {
-  static const int minimumContributionAmount = 2000;
-  static const int maximumContributionAmount = 99000;
+
   List<Block> _blocks = [];
   bool _isLoadingBlocks = true;
   String? _appLogoUrl;
@@ -209,10 +208,8 @@ class _ContributePageState extends State<ContributePage> {
     switch (step) {
       case 0:
         final amount = _selectedAmount;
-        if (amount == null ||
-            amount < minimumContributionAmount ||
-            amount > maximumContributionAmount) {
-          _showSnack('Please enter an amount between Rs 2,000 and Rs 99,000.');
+        if (amount == null || amount <= 0) {
+          _showSnack('Please enter an amount greater than 0.');
           return false;
         }
         return true;
@@ -557,8 +554,7 @@ class _AmountStep extends StatelessWidget {
       children: [
         const _StepTitle(
           title: 'Choose Contribution Amount',
-          subtitle:
-              'Please enter your contribution amount between ₹2,000 and ₹99,000.',
+          subtitle: 'Please enter your contribution amount.',
         ),
         const SizedBox(height: 22),
         const Text(

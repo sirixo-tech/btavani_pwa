@@ -563,9 +563,9 @@ class _AmountStep extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.0,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 1.4,
           ),
           itemCount: amounts.length,
           itemBuilder: (context, index) {
@@ -762,6 +762,7 @@ class _PaymentStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 16),
+        const SizedBox(height: 16),
         const Center(
           child: Text(
             'SCAN TO PAY',
@@ -776,8 +777,8 @@ class _PaymentStep extends StatelessWidget {
         const SizedBox(height: 16),
         Center(
           child: Container(
-            width: 200,
-            height: 200,
+            width: 280,
+            height: 280,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -1267,16 +1268,16 @@ class AmountButton extends StatelessWidget {
                 '₹${formatIndianNumber(value)}',
                 style: const TextStyle(
                   color: _maroon,
-                  fontSize: 26,
+                  fontSize: 22,
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               const Text(
                 'Suggested',
                 style: TextStyle(
                   color: _muted,
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1293,24 +1294,24 @@ class AmountButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: _maroon.withOpacity(0.4),
+                color: _maroon.withValues(alpha: 0.4),
                 width: 1.5,
-                style: BorderStyle.solid, // Custom dashed could be drawn, but solid is ok or we can use an icon
+                style: BorderStyle.solid,
               ),
             ),
-            child: const Icon(Icons.edit, color: _maroon, size: 24),
+            child: const Icon(Icons.edit, color: _maroon, size: 20),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           const Text(
             'Enter Any\nAmount',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _maroon,
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w800,
               height: 1.2,
             ),

@@ -752,53 +752,50 @@ class _PaymentStep extends StatelessWidget {
   final VoidCallback onPickScreenshot;
 
   Widget _buildUpiAppIcon(String name, String? assetPath, String urlScheme, {Color? fallbackColor}) {
-    return GestureDetector(
-      onTap: () async {
-        String url = upiPayload;
-        if (urlScheme.isNotEmpty) {
-          url = url.replaceFirst('upi://pay', urlScheme);
-        }
-        final uri = Uri.parse(url);
-        try {
-          // On Web, canLaunchUrl often returns false for custom schemes due to browser security.
-          // We must directly try to launch it.
-          final launched = await launchUrl(uri, mode: LaunchMode.externalApplication, webOnlyWindowName: '_self');
-          if (!launched && urlScheme.isNotEmpty) {
-             // Fallback to standard upi:// if specific app intent fails
-             await launchUrl(Uri.parse(upiPayload), mode: LaunchMode.externalApplication, webOnlyWindowName: '_self');
+    String url = upiPayload;
+    if (urlScheme.isNotEmpty) {
+      url = url.replaceFirst('upi://pay', urlScheme);
+    }
+    final uri = Uri.parse(url);
+
+    return Link(
+      uri: uri,
+      target: LinkTarget.self,
+      builder: (context, followLink) => GestureDetector(
+        onTap: () {
+          if (followLink != null) {
+            followLink();
+          } else {
+            launchUrl(uri, mode: LaunchMode.externalApplication);
           }
-        } catch (e) {
-          if (urlScheme.isNotEmpty) {
-             await launchUrl(Uri.parse(upiPayload), mode: LaunchMode.externalApplication, webOnlyWindowName: '_self');
-          }
-        }
-      },
-      child: Column(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                )
-              ],
-            ),
-            child: assetPath != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(assetPath, fit: BoxFit.cover),
+        },
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   )
-                : Icon(Icons.account_balance, color: fallbackColor),
-          ),
-          const SizedBox(height: 4),
-          Text(name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _muted)),
-        ],
+                ],
+              ),
+              child: assetPath != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(assetPath, fit: BoxFit.cover),
+                    )
+                  : Icon(Icons.account_balance, color: fallbackColor),
+            ),
+            const SizedBox(height: 4),
+            Text(name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _muted)),
+          ],
+        ),
       ),
     );
   }

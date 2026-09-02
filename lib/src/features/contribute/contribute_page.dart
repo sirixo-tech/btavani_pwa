@@ -762,7 +762,6 @@ class _PaymentStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 16),
-        const SizedBox(height: 16),
         const Center(
           child: Text(
             'SCAN TO PAY',
@@ -777,8 +776,8 @@ class _PaymentStep extends StatelessWidget {
         const SizedBox(height: 16),
         Center(
           child: Container(
-            width: 280,
-            height: 280,
+            width: 200,
+            height: 200,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,

@@ -751,12 +751,59 @@ class _PaymentStep extends StatelessWidget {
   final ValueChanged<int> onEdit;
   final VoidCallback onPickScreenshot;
 
+  Widget _buildUpiAppIcon(String name, String? assetPath, String urlScheme, {Color? fallbackColor}) {
+    return GestureDetector(
+      onTap: () async {
+        String url = upiPayload;
+        if (urlScheme.isNotEmpty) {
+          url = url.replaceFirst('upi://pay', urlScheme);
+        }
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          // Fallback to standard upi:// if specific app intent fails
+          final standardUri = Uri.parse(upiPayload);
+          if (await canLaunchUrl(standardUri)) {
+            await launchUrl(standardUri, mode: LaunchMode.externalApplication);
+          }
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+            child: assetPath != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(assetPath, fit: BoxFit.cover),
+                  )
+                : Icon(Icons.account_balance, color: fallbackColor),
+          ),
+          const SizedBox(height: 4),
+          Text(name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _muted)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 16),
         const SizedBox(height: 16),
         const Center(
           child: Text(
@@ -772,145 +819,17 @@ class _PaymentStep extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildUpiAppIcon('PhonePe', 'assets/images/payment/phonepe.png'),
+            _buildUpiAppIcon('PhonePe', 'assets/images/payment/phonepe.png', 'phonepe://pay'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('GPay', 'assets/images/payment/google_pay.png'),
+            _buildUpiAppIcon('GPay', 'assets/images/payment/google_pay.png', 'tez://upi/pay'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('Paytm', 'assets/images/payment/paytm.jpg'),
+            _buildUpiAppIcon('Paytm', 'assets/images/payment/paytm.jpg', 'paytmmp://pay'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('BHIM', 'assets/images/payment/bhim.png'),
+            _buildUpiAppIcon('BHIM', 'assets/images/payment/bhim.png', 'bhim://pay'),
             const SizedBox(width: 12),
-            _buildUpiAppIcon('Any UPI', null, fallbackColor: const Color(0xFF000000)),
+            _buildUpiAppIcon('Any UPI', null, 'upi://pay', fallbackColor: const Color(0xFF000000)),
           ],
         ),
-        const SizedBox(height: 24),
-        Center(
-          child: Container(
-            width: 280,
-            height: 280,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ],
-            ),
-            child: qrImageUrl.isNotEmpty
-                ? Image.network(
-                    qrImageUrl,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => QrImageView(
-                      data: upiPayload,
-                      version: QrVersions.auto,
-                      gapless: false,
-                    ),
-                  )
-                : QrImageView(
-                    data: upiPayload,
-                    version: QrVersions.auto,
-                    gapless: false,
-                  ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        if (upiId.isNotEmpty) ...[
-          const Text(
-            'OR Pay using UPI ID',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: _ink,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _maroon.withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    upiId,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _ink,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: upiId));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('UPI ID copied to clipboard'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.copy, size: 16),
-                  label: const Text('Copy'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: _maroon,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9), // Light green
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF81C784)),
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.verified_user_outlined, color: Color(0xFF2E7D32), size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Paying from the same phone?',
-                        style: TextStyle(
-                          color: Color(0xFF2E7D32),
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Use the UPI ID above in your UPI app to pay directly. No QR scan needed!',
-                        style: TextStyle(
-                          color: Color(0xFF2E7D32),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.all(12),

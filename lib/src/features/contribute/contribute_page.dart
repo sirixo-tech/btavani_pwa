@@ -842,15 +842,35 @@ class _PaymentStep extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                      upiId,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: _ink,
-                      ),
+                Expanded(
+                  child: Text(
+                    upiId,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _ink,
                     ),
-                  ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: upiId));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('UPI ID copied to clipboard'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.copy, size: 16),
+                  label: const Text('Copy'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _maroon,
+                    padding: EdgeInsets.zero,
+                  ),
                 ),
               ],
             ),
@@ -1308,28 +1328,27 @@ class AmountButton extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-              Text(
-                '₹${formatIndianNumber(value)}',
-                style: const TextStyle(
-                  color: _maroon,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Suggested',
-                style: TextStyle(
-                  color: _muted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          Text(
+            '₹${formatIndianNumber(value)}',
+            style: const TextStyle(
+              color: _maroon,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          const Text(
+            'Suggested',
+            style: TextStyle(
+              color: _muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
+  }
 
   Widget _buildOtherContent() {
     return Center(

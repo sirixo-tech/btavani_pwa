@@ -831,6 +831,113 @@ class _PaymentStep extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 24),
+        const Row(
+          children: [
+            Expanded(child: Divider(color: _line)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'OR SCAN QR CODE',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: _muted,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: _line)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: Container(
+            width: 240,
+            height: 240,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            child: qrImageUrl.isNotEmpty
+                ? Image.network(
+                    qrImageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => QrImageView(
+                      data: upiPayload,
+                      version: QrVersions.auto,
+                      gapless: false,
+                    ),
+                  )
+                : QrImageView(
+                    data: upiPayload,
+                    version: QrVersions.auto,
+                    gapless: false,
+                  ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        if (upiId.isNotEmpty) ...[
+          const Text(
+            'UPI ID',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _ink,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: _maroon.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    upiId,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _ink,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: upiId));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('UPI ID copied to clipboard'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.copy, size: 16),
+                  label: const Text('Copy'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _maroon,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(

@@ -85,7 +85,7 @@ class _ContributePageState extends State<ContributePage> {
         'pn': 'BT AVANI Ganesh Utsav Committee',
         'am': amount.toStringAsFixed(2),
         'cu': 'INR',
-      'tn': 'Avani Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''} Flat ${_flatController.text.trim()}',
+      'tn': 'Avani Ganesh Utsav block -${_selectedBlock?.name ?? ''} ${_flatController.text.trim()}',
       },
     );
   }
@@ -886,10 +886,12 @@ class _PaymentStep extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.all(4),
                 child: qrImageUrl.isNotEmpty
-                    ? Image.network(
-                        qrImageUrl,
+                    ? CachedNetworkImage(
+                        key: ValueKey(qrImageUrl),
+                        imageUrl: qrImageUrl,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => QrImageView(
+                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                        errorWidget: (context, url, error) => QrImageView(
                           data: upiPayload,
                           version: QrVersions.auto,
                           gapless: false,

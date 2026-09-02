@@ -218,10 +218,6 @@ class _ContributePageState extends State<ContributePage> {
       case 2:
         return _addressFormKey.currentState?.validate() ?? false;
       case 3:
-        if (_utrController.text.trim().length < 8) {
-          _showSnack('Please enter a valid UTR / transaction ID.');
-          return false;
-        }
         if (_screenshotFile == null) {
           _showSnack('Please upload the payment screenshot.');
           return false;
@@ -846,7 +842,16 @@ class _PaymentStep extends StatelessWidget {
                   ],
                 ),
                 TextButton.icon(
-                  onPressed: () {}, // Optional: implement copy
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: upiId));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('UPI ID copied to clipboard'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.copy, size: 16),
                   label: const Text('Copy'),
                   style: TextButton.styleFrom(
@@ -886,13 +891,6 @@ class _PaymentStep extends StatelessWidget {
         const SizedBox(height: 24),
         const Divider(color: _line),
         const SizedBox(height: 16),
-        ContributionTextField(
-          label: 'UTR / Transaction ID *',
-          hint: 'e.g. 123456789012',
-          icon: Icons.tag,
-          controller: utrController,
-        ),
-        const SizedBox(height: 8),
         const _FieldLabel('Payment Screenshot *'),
         const SizedBox(height: 8),
         InkWell(
@@ -935,6 +933,13 @@ class _PaymentStep extends StatelessWidget {
         const ContributionNotice(
           icon: Icons.shield_outlined,
           text: 'Please upload the screenshot after making the payment.',
+        ),
+        const SizedBox(height: 24),
+        ContributionTextField(
+          label: 'UTR / Transaction ID (Optional)',
+          hint: 'e.g. 123456789012',
+          icon: Icons.tag,
+          controller: utrController,
         ),
       ],
     );

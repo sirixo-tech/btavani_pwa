@@ -74,20 +74,11 @@ class _ContributePageState extends State<ContributePage> {
   String get _selectedUpiId => _selectedBlock?.upiId ?? '';
   String get _selectedQrImageUrl => _selectedBlock?.qrImageUrl ?? '';
 
-  Uri get _upiUri {
+  String get _upiUri {
     final amount = _selectedAmount ?? amounts.first.amount!;
+    final tn = 'Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''}-${_flatController.text.trim()}';
 
-    return Uri(
-      scheme: 'upi',
-      host: 'pay',
-      queryParameters: {
-        'pa': _selectedUpiId,
-        'pn': 'BT AVANI Ganesh Utsav Committee',
-        'am': amount.toStringAsFixed(2),
-        'cu': 'INR',
-      'tn': 'Ganesh Utsav 2026 \u2013 ${_selectedBlock?.name ?? ''}-${_flatController.text.trim()}',
-      },
-    );
+    return 'upi://pay?pa=$_selectedUpiId&pn=BT%20AVANI%20Ganesh%20Utsav%20Committee&am=${amount.toStringAsFixed(2)}&cu=INR&tn=${Uri.encodeComponent(tn)}';
   }
 
   @override
@@ -788,9 +779,9 @@ class _PaymentStep extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (assetPath != null)
-                  Image.asset(assetPath, width: 32, height: 32, fit: BoxFit.contain)
+                  Image.asset(assetPath, width: 46, height: 46, fit: BoxFit.contain)
                 else
-                  const Icon(Icons.account_balance, size: 32),
+                  const Icon(Icons.account_balance, size: 46),
                 const SizedBox(height: 8),
                 Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _ink)),
                 const SizedBox(height: 4),
@@ -939,16 +930,16 @@ class _PaymentStep extends StatelessWidget {
               )
             ],
           ),
-          child: Row(
+          child: Column(
             children: [
               Container(
-                width: 180,
-                height: 180,
+                width: 250,
+                height: 250,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: _line.withOpacity(0.5)),
                 ),
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(8),
                 child: qrImageUrl.isNotEmpty
                     ? CachedNetworkImage(
                         key: ValueKey(qrImageUrl),
@@ -967,30 +958,23 @@ class _PaymentStep extends StatelessWidget {
                         gapless: false,
                       ),
               ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Scan & Pay',
-                      style: TextStyle(
-                        color: _maroon,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Use any UPI App to scan this QR code and make payment.',
-                      style: TextStyle(
-                        color: _ink,
-                        fontSize: 12,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 16),
+              const Text(
+                'Scan & Pay',
+                style: TextStyle(
+                  color: _maroon,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Use any UPI App to scan this QR code and make payment.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _ink,
+                  fontSize: 13,
+                  height: 1.4,
                 ),
               ),
             ],

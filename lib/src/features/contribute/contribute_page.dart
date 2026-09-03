@@ -775,6 +775,33 @@ class _PaymentStep extends StatelessWidget {
         target: LinkTarget.self,
         builder: (context, followLink) => GestureDetector(
           onTap: () {
+            if (amount > 2000) {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Bank Limit Exceeded', style: TextStyle(color: Colors.red, fontSize: 18)),
+                    ],
+                  ),
+                  content: const Text(
+                    'For security reasons, UPI apps (like PhonePe/GPay) do not allow direct link payments over ₹2,000 for personal accounts.\n\n'
+                    'Please copy the UPI ID below and paste it directly in your app, or scan the QR code from another device.',
+                    style: TextStyle(height: 1.4),
+                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('OKAY', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                    ),
+                  ],
+                ),
+              );
+              return;
+            }
             print('LAUNCHING UPI URI: $uri');
             if (followLink != null) {
               followLink();

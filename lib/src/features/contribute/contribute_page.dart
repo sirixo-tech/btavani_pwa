@@ -99,11 +99,11 @@ class _ContributePageState extends State<ContributePage> {
 
     if (!_validateStep(_currentStep)) return;
 
-    if (_currentStep == 3) {
+    if (_currentStep == 2) {
       setState(() => _isSubmitting = true);
       try {
         final api = EventApiService();
-        final response = await api.submitPayment(
+        final response = await api.createPaymentRecord(
           amount: _selectedAmount ?? amounts.first.amount!,
           blockId: _selectedBlock?.id ?? '',
           residentName: _nameController.text.trim(),
@@ -111,6 +111,28 @@ class _ContributePageState extends State<ContributePage> {
           phone: _phoneController.text.trim(),
           flatNumber: _flatController.text.trim(),
           gotram: _gotramController.text.trim(),
+        );
+        _createdPaymentId = response['payment']['id'];
+      } catch (e) {
+        if (!mounted) return;
+        _showSnack('Failed to prepare payment: $e');
+        setState(() => _isSubmitting = false);
+        return;
+      }
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+
+    if (_currentStep == 3) {
+      if (_createdPaymentId == null) {
+        _showSnack('Payment record not found. Please go back and try again.');
+        return;
+      }
+
+      setState(() => _isSubmitting = true);
+      try {
+        final api = EventApiService();
+        final response = await api.updatePaymentRecord(
+          paymentId: _createdPaymentId!,
           utr: _utrController.text.trim(),
           screenshotBytes: _screenshotFile != null
               ? await _screenshotFile!.readAsBytes()

@@ -111,7 +111,7 @@ class EventApiService {
     }
   }
 
-  Future<Map<String, dynamic>> submitPayment({
+  Future<Map<String, dynamic>> createPaymentRecord({
     required int amount,
     required String blockId,
     required String residentName,
@@ -119,21 +119,38 @@ class EventApiService {
     required String phone,
     required String flatNumber,
     required String gotram,
+  }) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/mobile/payments');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'amount': amount,
+        'blockId': blockId,
+        'residentName': residentName,
+        'email': email,
+        'phone': phone,
+        'flatNumber': flatNumber,
+        'gotram': gotram,
+        'status': 'created',
+      }),
+    );
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception('Failed to create payment record');
+    }
+    return json.decode(response.body);
+  }
+
+  Future<Map<String, dynamic>> updatePaymentRecord({
+    required String paymentId,
     required String utr,
     List<int>? screenshotBytes,
     String? screenshotName,
   }) async {
-    final url = Uri.parse('${ApiConfig.baseUrl}/api/mobile/payments');
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/mobile/payments/$paymentId');
     
     if (screenshotBytes != null) {
-      final request = http.MultipartRequest('POST', url)
-        ..fields['amount'] = amount.toString()
-        ..fields['blockId'] = blockId
-        ..fields['residentName'] = residentName
-        ..fields['email'] = email
-        ..fields['phone'] = phone
-        ..fields['flatNumber'] = flatNumber
-        ..fields['gotram'] = gotram
+      final request = http.MultipartRequest('PUT', url)
         ..fields['provider'] = 'upi_qr'
         ..fields['status'] = 'pending'
         ..fields['referenceId'] = utr;
@@ -149,29 +166,22 @@ class EventApiService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
       
-      if (response.statusCode != 201 && response.statusCode != 200) {
-        throw Exception('Failed to submit payment. Status code: ${response.statusCode}');
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to update payment. Status code: ${response.statusCode}');
       }
       return json.decode(response.body);
     } else {
-      final response = await http.post(
+      final response = await http.put(
         url,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'amount': amount,
-          'blockId': blockId,
-          'residentName': residentName,
-          'email': email,
-          'phone': phone,
-          'flatNumber': flatNumber,
-          'gotram': gotram,
           'provider': 'upi_qr',
           'status': 'pending',
           'referenceId': utr,
         }),
       );
-      if (response.statusCode != 201 && response.statusCode != 200) {
-        throw Exception('Failed to submit payment');
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to update payment');
       }
       return json.decode(response.body);
     }

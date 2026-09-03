@@ -299,11 +299,15 @@ class _ContributePageState extends State<ContributePage> {
     }
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 104),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
             Row(
               children: [
                 SizedBox(
@@ -421,8 +425,23 @@ class _ContributePageState extends State<ContributePage> {
                 },
               ),
             ),
-            const SizedBox(height: 18),
-            SizedBox(
+                },
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
+                )
+              ],
+            ),
+            child: SizedBox(
               height: 54,
               child: PrimaryButton(
                 label: switch (_currentStep) {
@@ -433,9 +452,8 @@ class _ContributePageState extends State<ContributePage> {
                 onPressed: _continue,
               ),
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

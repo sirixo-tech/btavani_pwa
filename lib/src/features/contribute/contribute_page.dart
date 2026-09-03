@@ -85,7 +85,7 @@ class _ContributePageState extends State<ContributePage> {
         'pn': 'BT AVANI Ganesh Utsav Committee',
         'am': amount.toStringAsFixed(2),
         'cu': 'INR',
-      'tn': 'Avani Ganesh Utsav block -${_selectedBlock?.name ?? ''} ${_flatController.text.trim()}',
+      'tn': 'Ganesh Utsav 2026 \u2013 ${_selectedBlock?.name ?? ''}-${_flatController.text.trim()}',
       },
     );
   }
@@ -766,6 +766,7 @@ class _PaymentStep extends StatelessWidget {
         target: LinkTarget.self,
         builder: (context, followLink) => GestureDetector(
           onTap: () {
+            print('LAUNCHING UPI URI: $uri');
             if (followLink != null) {
               followLink();
             } else {
@@ -941,8 +942,8 @@ class _PaymentStep extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 160,
-                height: 160,
+                width: 180,
+                height: 180,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: _line.withOpacity(0.5)),

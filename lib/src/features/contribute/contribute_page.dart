@@ -78,9 +78,7 @@ class _ContributePageState extends State<ContributePage> {
   String get _upiUri {
     final amount = _selectedAmount ?? amounts.first.amount!;
     final tn = 'Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''}-${_flatController.text.trim()}';
-
-    final tr = 'BT${DateTime.now().millisecondsSinceEpoch}';
-    return 'upi://pay?pa=$_selectedUpiId&pn=BT%20AVANI%20Ganesh%20Utsav%20Committee&mc=0000&mode=02&purpose=00&tr=$tr&am=${amount.toStringAsFixed(2)}&cu=INR&tn=${Uri.encodeComponent(tn)}';
+    return 'upi://pay?pa=$_selectedUpiId&pn=BT%20AVANI%20Ganesh%20Utsav%20Committee&am=${amount.toStringAsFixed(2)}&cu=INR&tn=${Uri.encodeComponent(tn)}';
   }
 
   @override

@@ -425,10 +425,10 @@ class _ContributePageState extends State<ContributePage> {
                 },
               ),
             ),
-                },
-              ),
-            ),
-          ),
+          ],
+        ),
+      ),
+    ),
           Container(
             padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
             decoration: BoxDecoration(
@@ -445,7 +445,7 @@ class _ContributePageState extends State<ContributePage> {
               height: 54,
               child: PrimaryButton(
                 label: switch (_currentStep) {
-                  3 => 'SUBMIT FOR VERIFICATION',
+                  3 => 'SUBMIT',
                   _ => 'CONTINUE',
                 },
                 isLoading: _isSubmitting,

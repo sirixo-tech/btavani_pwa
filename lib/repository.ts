@@ -649,6 +649,54 @@ export async function updatePaymentStatus(
   }
 }
 
+export async function updatePaymentPartial(
+  id: string,
+  updates: Partial<Omit<Payment, "id" | "createdAt" | "paidAt">>
+) {
+  if (!hasDatabase()) {
+    const payment = memory.payments.find((item: any) => item.id === id);
+    if (payment) {
+      if (updates.status !== undefined) payment.status = updates.status;
+      if (updates.referenceId !== undefined) payment.referenceId = updates.referenceId;
+      if (updates.screenshotUrl !== undefined) payment.screenshotUrl = updates.screenshotUrl;
+      if (updates.provider !== undefined) payment.provider = updates.provider;
+      if (updates.status === "paid") payment.paidAt = new Date().toISOString();
+    }
+    await clearMobileCache();
+    return payment;
+  }
+
+  const setClauses: string[] = [];
+  const values: any[] = [id];
+  let paramIndex = 2;
+
+  if (updates.status !== undefined) {
+    setClauses.push(`status = $${paramIndex++}`);
+    values.push(updates.status);
+    setClauses.push(`paid_at = case when $${paramIndex - 1} = 'paid' then coalesce(paid_at, now()) else paid_at end`);
+  }
+  if (updates.referenceId !== undefined) {
+    setClauses.push(`reference_id = $${paramIndex++}`);
+    values.push(updates.referenceId);
+  }
+  if (updates.screenshotUrl !== undefined) {
+    setClauses.push(`screenshot_url = $${paramIndex++}`);
+    values.push(updates.screenshotUrl);
+  }
+  if (updates.provider !== undefined) {
+    setClauses.push(`provider = $${paramIndex++}`);
+    values.push(updates.provider);
+  }
+
+  if (setClauses.length > 0) {
+    await query(
+      `update payments set ${setClauses.join(", ")} where id = $1`,
+      values
+    );
+  }
+  await clearMobileCache();
+}
+
 export async function createPayment(input: {
   amount: number;
   blockId: string;

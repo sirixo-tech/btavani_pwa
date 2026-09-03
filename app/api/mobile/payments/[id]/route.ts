@@ -11,7 +11,7 @@ function authorizeWrite(request: Request) {
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!authorizeWrite(request)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,6 +42,7 @@ export async function PUT(
     })
     .parse(body);
 
-  await updatePaymentPartial(params.id, parsed);
+  const resolvedParams = await params;
+  await updatePaymentPartial(resolvedParams.id, parsed);
   return Response.json({ success: true });
 }

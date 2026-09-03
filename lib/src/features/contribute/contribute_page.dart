@@ -341,9 +341,9 @@ class _ContributePageState extends State<ContributePage> {
               'Your contribution makes this celebration special!',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _muted,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
+                color: _ink,
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
               ),
             ),
             const SizedBox(height: 18),
@@ -486,7 +486,9 @@ class ContributionStepper extends StatelessWidget {
                   height: 28,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: index <= currentStep ? _maroon : _line,
+                    color: index < currentStep
+                        ? Colors.green[700]
+                        : (index == currentStep ? _maroon : _line),
                     shape: BoxShape.circle,
                   ),
                   child: index < currentStep
@@ -520,7 +522,7 @@ class ContributionStepper extends StatelessWidget {
               width: 10,
               height: 1.4,
               margin: const EdgeInsets.only(bottom: 21),
-              color: index < currentStep ? _maroon : _line,
+              color: index < currentStep ? Colors.green[700] : _line,
             ),
         ],
       ],
@@ -751,53 +753,57 @@ class _PaymentStep extends StatelessWidget {
   final ValueChanged<int> onEdit;
   final VoidCallback onPickScreenshot;
 
-  Widget _buildUpiAppIcon(String name, String? assetPath, String urlScheme, {Color? fallbackColor}) {
+  Widget _buildUpiAppIcon(String name, String? assetPath, String urlScheme) {
     String url = upiPayload;
     if (urlScheme.isNotEmpty) {
       url = url.replaceFirst('upi://pay', urlScheme);
     }
     final uri = Uri.parse(url);
 
-    return Link(
-      uri: uri,
-      target: LinkTarget.self,
-      builder: (context, followLink) => GestureDetector(
-        onTap: () {
-          if (followLink != null) {
-            followLink();
-          } else {
-            launchUrl(uri, mode: LaunchMode.externalApplication);
-          }
-        },
-        child: Column(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  )
-                ],
+    return Expanded(
+      child: Link(
+        uri: uri,
+        target: LinkTarget.self,
+        builder: (context, followLink) => GestureDetector(
+          onTap: () {
+            if (followLink != null) {
+              followLink();
+            } else {
+              launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: name == 'PhonePe'
+                    ? Colors.purple.shade200
+                    : (name == 'Google Pay' ? Colors.blue.shade200 : Colors.lightBlue.shade200),
               ),
-              child: assetPath != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.asset(assetPath, fit: BoxFit.contain),
-                      ),
-                    )
-                  : Icon(Icons.account_balance, color: fallbackColor),
             ),
-            const SizedBox(height: 6),
-            Text(name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _muted)),
-          ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (assetPath != null)
+                  Image.asset(assetPath, width: 32, height: 32, fit: BoxFit.contain)
+                else
+                  const Icon(Icons.account_balance, size: 32),
+                const SizedBox(height: 8),
+                Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _ink)),
+                const SizedBox(height: 4),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Tap to Pay', style: TextStyle(fontSize: 10, color: _muted)),
+                    SizedBox(width: 4),
+                    Icon(Icons.chevron_right, size: 12, color: _maroon),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -805,62 +811,119 @@ class _PaymentStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 16),
-        const Row(
-          children: [
-            Expanded(child: Divider(color: _line)),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                'Pay using any UPI App',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: _ink,
-                ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDE8E8),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Step 4 of 4',
+                style: TextStyle(color: Color(0xFF9B1B30), fontSize: 10, fontWeight: FontWeight.bold),
               ),
             ),
-            Expanded(child: Divider(color: _line)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildUpiAppIcon('PhonePe', 'assets/images/payment/phonepe.png', 'phonepe://pay'),
-            const SizedBox(width: 12),
-            _buildUpiAppIcon('GPay', 'assets/images/payment/google_pay.png', 'tez://upi/pay'),
-            const SizedBox(width: 12),
-            _buildUpiAppIcon('Paytm', 'assets/images/payment/paytm.jpg', 'paytmmp://pay'),
-            const SizedBox(width: 12),
-            _buildUpiAppIcon('BHIM', 'assets/images/payment/bhim.png', 'bhim://pay'),
-            const SizedBox(width: 12),
-            _buildUpiAppIcon('Any UPI', null, 'upi://pay', fallbackColor: const Color(0xFF000000)),
-          ],
-        ),
-        const SizedBox(height: 24),
-        const Row(
-          children: [
-            Expanded(child: Divider(color: _line)),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                'OR SCAN QR CODE',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: _muted,
-                ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Select a payment option',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: _ink),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Choose any option below to complete your payment',
+            style: TextStyle(fontSize: 12, color: _muted),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              const Icon(Icons.phone_android, size: 20, color: _maroon),
+              const SizedBox(width: 8),
+              const Text('Pay using UPI App', style: TextStyle(fontWeight: FontWeight.bold, color: _ink)),
+              const SizedBox(width: 12),
+              Expanded(child: Divider(color: _line.withOpacity(0.5))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildUpiAppIcon('PhonePe', 'assets/images/payment/phonepe.png', 'phonepe://pay'),
+              const SizedBox(width: 12),
+              _buildUpiAppIcon('Google Pay', 'assets/images/payment/google_pay.png', 'tez://upi/pay'),
+              const SizedBox(width: 12),
+              _buildUpiAppIcon('Paytm', 'assets/images/payment/paytm.jpg', 'paytmmp://pay'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () {
+              launchUrl(Uri.parse(upiPayload), mode: LaunchMode.externalApplication);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.account_balance, color: Colors.green.shade700, size: 32),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Pay using Online Bank', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: _ink)),
+                        SizedBox(height: 2),
+                        Text('Choose from 100+ banks', style: TextStyle(color: _muted, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: Colors.green.shade700, size: 20),
+                ],
               ),
             ),
-            Expanded(child: Divider(color: _line)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        const SizedBox(height: 16),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(child: Divider(color: _line.withOpacity(0.5))),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('OR', style: TextStyle(color: _muted, fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(child: Divider(color: _line.withOpacity(0.5))),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              const Icon(Icons.qr_code_scanner, size: 20, color: _maroon),
+              const SizedBox(width: 8),
+              const Text('Scan QR Code to Pay', style: TextStyle(fontWeight: FontWeight.bold, color: _ink)),
+              const SizedBox(width: 12),
+              Expanded(child: Divider(color: _line.withOpacity(0.5))),
+            ],
+          ),
+          const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1013,6 +1076,15 @@ class _PaymentStep extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 16),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.security, color: Colors.green, size: 16),
+            SizedBox(width: 6),
+            Text('Your payment is 100% secure', style: TextStyle(color: _muted, fontSize: 11, fontWeight: FontWeight.w600)),
+          ],
+        ),
         const SizedBox(height: 12),
         const ContributionNotice(
           icon: Icons.shield_outlined,
@@ -1026,6 +1098,7 @@ class _PaymentStep extends StatelessWidget {
           controller: utrController,
         ),
       ],
+    ),
     );
   }
 }

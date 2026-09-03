@@ -97,7 +97,11 @@ export default async function PaymentsPage({
                       <p className="font-semibold text-zinc-900">
                         {payment.residentName}
                       </p>
-                      <p className="text-xs text-zinc-500 mb-2">{payment.blockName} • {payment.flatNumber}</p>
+                      <p className="text-xs text-zinc-500 mb-1">{payment.blockName} • Flat {payment.flatNumber}</p>
+                      <p className="text-xs text-zinc-500 mb-2">
+                        {payment.phone && <span>Phone: {payment.phone}</span>}
+                        {payment.gotram && <span> • Gotram: {payment.gotram}</span>}
+                      </p>
                       {payment.screenshotUrl && (
                         <ScreenshotViewer url={payment.screenshotUrl} />
                       )}

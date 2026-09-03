@@ -886,37 +886,6 @@ class _PaymentStep extends StatelessWidget {
               _buildUpiAppIcon('Paytm', 'assets/images/payment/paytm.jpg', 'paytmmp://pay'),
             ],
           ),
-          const SizedBox(height: 16),
-          InkWell(
-            onTap: () {
-              launchUrl(Uri.parse(upiPayload), mode: LaunchMode.externalApplication);
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.account_balance, color: Colors.green.shade700, size: 32),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Pay using Online Bank', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: _ink)),
-                        SizedBox(height: 2),
-                        Text('Choose from 100+ banks', style: TextStyle(color: _muted, fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right, color: Colors.green.shade700, size: 20),
-                ],
-              ),
-            ),
-          ),
           const SizedBox(height: 24),
           Row(
             children: [

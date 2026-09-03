@@ -78,7 +78,7 @@ class _ContributePageState extends State<ContributePage> {
     final amount = _selectedAmount ?? amounts.first.amount!;
     final tn = 'Ganesh Utsav 2026 - ${_selectedBlock?.name ?? ''}-${_flatController.text.trim()}';
 
-    return 'upi://pay?pa=$_selectedUpiId&pn=BT%20AVANI%20Ganesh%20Utsav%20Committee&am=${amount.toStringAsFixed(2)}&cu=INR&tn=${Uri.encodeComponent(tn)}';
+    return 'upi://pay?pa=$_selectedUpiId&pn=BT%20AVANI%20Ganesh%20Utsav%20Committee&mc=0000&am=${amount.toStringAsFixed(2)}&cu=INR&tn=${Uri.encodeComponent(tn)}';
   }
 
   @override
@@ -922,74 +922,121 @@ class _PaymentStep extends StatelessWidget {
               )
             ],
           ),
-          child: Column(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: _line.withOpacity(0.5)),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: qrImageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        key: ValueKey(qrImageUrl),
-                        imageUrl: qrImageUrl,
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) => QrImageView(
-                          data: upiPayload,
-                          version: QrVersions.auto,
-                          gapless: false,
-                        ),
-                      )
-                    : QrImageView(
-                        data: upiPayload,
-                        version: QrVersions.auto,
-                        gapless: false,
+              Column(
+                children: [
+                  Container(
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: _line.withOpacity(0.5)),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: qrImageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            key: ValueKey(qrImageUrl),
+                            imageUrl: qrImageUrl,
+                            fit: BoxFit.contain,
+                            placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                            errorWidget: (context, url, error) => QrImageView(
+                              data: upiPayload,
+                              version: QrVersions.auto,
+                              gapless: false,
+                            ),
+                          )
+                        : QrImageView(
+                            data: upiPayload,
+                            version: QrVersions.auto,
+                            gapless: false,
+                          ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: upiId));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('UPI ID copied to clipboard')));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _paper,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: _line),
                       ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Scan & Pay',
-                style: TextStyle(
-                  color: _maroon,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Use any UPI App to scan this QR code and make payment.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 13,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: upiId));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('UPI ID copied to clipboard')));
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _paper,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _line),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.copy, size: 12, color: _maroon),
+                          const SizedBox(width: 6),
+                          const Text('Copy UPI ID', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _ink)),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.copy, size: 14, color: _maroon),
-                      const SizedBox(width: 8),
-                      Text('Copy UPI ID: $upiId', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _ink)),
-                    ],
-                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Scan & Pay',
+                      style: TextStyle(
+                        color: _maroon,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Use any UPI App to scan this QR code and make payment.',
+                      style: TextStyle(
+                        color: _ink,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const _FieldLabel('Upload Proof *'),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: onPickScreenshot,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _paper,
+                          border: Border.all(color: _line),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              screenshotFileName != null ? Icons.image : Icons.add_a_photo_outlined,
+                              color: _maroon,
+                              size: 24,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              screenshotFileName ?? 'Upload Screenshot',
+                              style: TextStyle(
+                                color: screenshotFileName != null ? _ink : _muted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1033,47 +1080,6 @@ class _PaymentStep extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Divider(color: _line),
-        const SizedBox(height: 16),
-        const _FieldLabel('Payment Screenshot *'),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: onPickScreenshot,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              color: _paper,
-              border: Border.all(color: _line),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  screenshotFileName != null ? Icons.image : Icons.add_a_photo_outlined,
-                  color: _maroon,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    screenshotFileName ?? 'Upload Payment Screenshot',
-                    style: TextStyle(
-                      color: screenshotFileName != null ? _ink : _muted,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (screenshotFileName != null)
-                  const Icon(Icons.check_circle, color: Colors.green, size: 24),
-              ],
-            ),
           ),
         ),
         const SizedBox(height: 16),

@@ -37,6 +37,7 @@ class _ContributePageState extends State<ContributePage> {
   int _selectedAmountIndex = 0;
   Block? _selectedBlock;
   bool _isSubmitting = false;
+  String? _createdPaymentId;
 
   @override
   void initState() {

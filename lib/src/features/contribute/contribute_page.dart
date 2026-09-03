@@ -834,6 +834,29 @@ class _PaymentStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          if (amount > 2000) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3CD),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFFECB5)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Color(0xFF856404), size: 20),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'For amounts over ₹2,000, UPI apps restrict direct link payments. Please scan the QR code from another device or Copy the UPI ID to pay.',
+                      style: TextStyle(color: Color(0xFF856404), fontSize: 12, height: 1.3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           const Text(
             'Select a payment option',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: _ink),
@@ -975,6 +998,29 @@ class _PaymentStep extends StatelessWidget {
                   color: _ink,
                   fontSize: 13,
                   height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: upiId));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('UPI ID copied to clipboard')));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _paper,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _line),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.copy, size: 14, color: _maroon),
+                      const SizedBox(width: 8),
+                      Text('Copy UPI ID: $upiId', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _ink)),
+                    ],
+                  ),
                 ),
               ),
             ],
